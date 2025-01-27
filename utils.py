@@ -90,7 +90,8 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
 
 
 def graph_to_adj_bet(list_graph,list_n_sequence,list_node_num,model_size):
-    
+    #Se supone que esto te devuelve la matriz de adyacencia modificada, por lo que
+    #aqui primero busca los Nzp y luego los descarta de la matriz de adyacencia
 
     list_adjacency = list()
     list_adjacency_t = list()
@@ -139,7 +140,7 @@ def graph_to_adj_bet(list_graph,list_n_sequence,list_node_num,model_size):
         all_in_dict = get_in_edges(g_nkit,in_n_seq)
 
 
-        
+        #Aqui te busca los Nzp y te va quitando los que no necesitas
         for index in non_zero_ind:
            
             is_zero = clique_check(index,node_sequence,all_out_dict,all_in_dict)

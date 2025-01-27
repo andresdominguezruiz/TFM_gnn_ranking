@@ -16,6 +16,8 @@ parser.add_argument("--g",default="SF")
 args = parser.parse_args()
 gtype = args.g
 print(gtype)
+#La etiqueta que se le pone al final del comando sirve para determinar el tipo de grafos a utilizar
+#
 if gtype == "SF":
     data_path = "./datasets/data_splits/SF/betweenness/"
     print("Scale-free graphs selected.")
@@ -39,7 +41,7 @@ with open(data_path+"test.pickle","rb") as fopen:
     list_graph_test,list_n_seq_test,list_num_node_test,bc_mat_test = pickle.load(fopen)
 
 model_size = 10000
-#Get adjacency matrices from graphs
+#Una vez abierto los grafos, obtiene las matrices de adyacencia de los mismos.
 print(f"Graphs to adjacency conversion.")
 
 list_adj_train,list_adj_t_train = graph_to_adj_bet(list_graph_train,list_n_seq_train,list_num_node_train,model_size)
@@ -52,7 +54,7 @@ def train(list_adj_train,list_adj_t_train,list_num_node_train,bc_mat_train):
     total_count_train = list()
     loss_train = 0
     num_samples_train = len(list_adj_train)
-    for i in range(num_samples_train):
+    for i in range(num_samples_train): #num_samples= numero de grafos
         adj = list_adj_train[i]
         num_nodes = list_num_node_train[i]
         adj_t = list_adj_t_train[i]
@@ -75,7 +77,7 @@ def test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test):
     loss_val = 0
     list_kt = list()
     num_samples_test = len(list_adj_test)
-    for j in range(num_samples_test):
+    for j in range(num_samples_test):  
         adj = list_adj_test[j]
         adj_t = list_adj_t_test[j]
         adj=adj.to(device)

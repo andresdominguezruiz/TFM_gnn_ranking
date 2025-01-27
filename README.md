@@ -52,3 +52,6 @@ improves the performance similar to original results. In addition to this fix, I
 
 In case there are conflicts while installing the packages, please check the following [issue](https://github.com/sunilkmaurya/GNN_Ranking/issues/2) for matched versions of the packages. Thanks @natema for the information. 
 
+**Nota de Andrés:**
+Parece ser que desde Windows las dependencias están mezcladas, asi que fue necesario pasarlo al sistema de Ubuntu. Para crear entono virtual: python3.10 env/bin/activate, Y luego para activarlo: source env/bin/activate
+
