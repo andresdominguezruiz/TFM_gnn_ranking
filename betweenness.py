@@ -29,6 +29,11 @@ elif gtype == "GRP":
     data_path = "./datasets/data_splits/GRP/betweenness/"
     print("Gaussian Random Partition graphs selected.")
 
+elif gtype == "real":
+    data_path="./datasets/real_data/"
+    print("Real graph")
+    #Para el entrenamiento del los casos reales, se usan 5 grafos scale-free con 100.000 nodos
+
 
 
 #Load training data
