@@ -70,8 +70,8 @@ def load_txt_graph(file_path):
     return G_reset, node_sequence  # Grafo con nodos reindexados y su secuencia
 
 
-
-test_graph_path = "./datasets/real_data/WikiTalk.txt"
+#WikiVote tiene menos nodos
+test_graph_path = "./datasets/real_data/Wiki-Vote.txt"
 test_graph,test_node_sequency = load_txt_graph(test_graph_path)
 print(test_graph.number_of_nodes())
 
@@ -80,10 +80,22 @@ list_graph_test = [test_graph]
 list_n_seq_test = [test_node_sequency]  # Secuencia de nodos
 list_num_node_test = [test_graph.number_of_nodes()]
 print(test_graph.number_of_nodes())
-bc_mat_test = np.zeros((test_graph.number_of_nodes(), 1))  # Matriz de centralidad ficticia si no se tiene
+
+# Crear matriz para almacenar los coeficientes de centralidad de intermediación
+bc_mat_test = np.zeros((test_graph.number_of_nodes(), 1))
+
+# 🔹 Calcular la centralidad de intermediación
+betweenness = nx.betweenness_centrality(test_graph)
+
+# 🔹 Llenar bc_mat_test con los valores de centralidad
+for node, centrality in betweenness.items():
+    bc_mat_test[node, 0] = centrality
+#ES NECESARIO CALCULAR LA CENTRALIDAD REAL DE LOS NODOS PARA REALIZAR LAEVALUACIÓN CORRECTAMENTE
 
 
-model_size = 10000000
+
+
+model_size = 7115
 #Una vez abierto los grafos, obtiene las matrices de adyacencia de los mismos.
 print(f"Graphs to adjacency conversion.")
 
@@ -130,10 +142,18 @@ def test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test):
         num_nodes = list_num_node_test[j]
         
         y_out = model(adj,adj_t)
+        
+        print("BC_MAT_TEST------------")
+        print(bc_mat_test[:,j])
     
         
         true_arr = torch.from_numpy(bc_mat_test[:,j]).float()
         true_val = true_arr.to(device)
+        
+        print("Y_OUT---------------")
+        print(y_out)
+        print("TRUE_VAL---------------")
+        print(true_val)
     
         kt = ranking_correlation(y_out,true_val,num_nodes,model_size)
         list_kt.append(kt)
@@ -145,7 +165,7 @@ def test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test):
 
 
 #Model parameters
-hidden = 4
+hidden = 20
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = GNN_Bet(ninput=model_size,nhid=hidden,dropout=0.6)

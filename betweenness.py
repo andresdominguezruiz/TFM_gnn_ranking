@@ -45,6 +45,11 @@ with open(data_path+"training.pickle","rb") as fopen:
 with open(data_path+"test.pickle","rb") as fopen:
     list_graph_test,list_n_seq_test,list_num_node_test,bc_mat_test = pickle.load(fopen)
 
+print("TESTING VALUES:---------------")
+print(len(list_n_seq_train))
+print()
+
+
 model_size = 10000
 #Una vez abierto los grafos, obtiene las matrices de adyacencia de los mismos.
 print(f"Graphs to adjacency conversion.")

@@ -69,7 +69,7 @@ for graph_type in graph_types:
     print("Generating graphs and calculating centralities...")
     for i in range(num_of_graphs):
         print(f"Graph index:{i+1}/{num_of_graphs}",end='\r')
-        g_nx = create_graph(100000)
+        g_nx = create_graph(7115) #Cambiar número de nodos para diferentes grafos
         
         if nx.number_of_isolates(g_nx)>0:
             #print("Graph has isolates.")
