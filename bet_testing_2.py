@@ -139,7 +139,8 @@ def test(list_adj_test, list_adj_t_test, list_num_node_test, bc_mat_test):
         list_kt.append(kt)
 
     print(f"Average KT score on test graph: {np.mean(np.array(list_kt))}")
-
+#rellenar con 0 los nodos de la capa 0 adicionales.
+#He de cambiar la
 # **12. Inicializar modelo y optimizador**
 hidden = 20
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
