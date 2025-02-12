@@ -29,6 +29,11 @@ elif gtype == "GRP":
     data_path = "./datasets/data_splits/GRP/betweenness/"
     print("Gaussian Random Partition graphs selected.")
 
+elif gtype == "real":
+    data_path="./datasets/real_data/"
+    print("Real graph")
+    #Para el entrenamiento del los casos reales, se usan 5 grafos scale-free con 100.000 nodos
+
 
 
 #Load training data
@@ -39,6 +44,11 @@ with open(data_path+"training.pickle","rb") as fopen:
 
 with open(data_path+"test.pickle","rb") as fopen:
     list_graph_test,list_n_seq_test,list_num_node_test,bc_mat_test = pickle.load(fopen)
+
+print("TESTING VALUES:---------------")
+print(len(list_n_seq_train))
+print()
+
 
 model_size = 10000
 #Una vez abierto los grafos, obtiene las matrices de adyacencia de los mismos.

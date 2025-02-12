@@ -7,6 +7,7 @@ import time
 np.random.seed(1)
 
 
+#Esto sirve para directamente crear los grafos, pero solo les indican las propiedades
 def create_graph(graph_type):
 
     num_nodes = np.random.randint(5000,10000)
@@ -36,7 +37,7 @@ def create_graph(graph_type):
         assert nx.is_directed(g_nx)==True,"Not directed"
         return g_nx
 
-
+#Le mete el grafo para añadirle tanto los nodos como las aristas
 def nx2nkit(g_nx):
     
     node_num = g_nx.number_of_nodes()

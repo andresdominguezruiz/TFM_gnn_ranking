@@ -274,6 +274,7 @@ def graph_to_adj_close(list_graph,list_n_sequence,list_node_num,model_size,print
 
 
 def ranking_correlation(y_out,true_val,node_num,model_size):
+    print(true_val)
     y_out = y_out.reshape((model_size))
     true_val = true_val.reshape((model_size))
 
