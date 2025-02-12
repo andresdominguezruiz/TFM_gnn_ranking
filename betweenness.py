@@ -1,4 +1,4 @@
- 
+ #------ 0º INICIALIZACIÓN ---------------------
 import numpy as np
 import pickle
 import networkx as nx
@@ -29,11 +29,12 @@ elif gtype == "GRP":
     data_path = "./datasets/data_splits/GRP/betweenness/"
     print("Gaussian Random Partition graphs selected.")
 
-elif gtype == "real":
-    data_path="./datasets/real_data/"
-    print("Real graph")
-    #Para el entrenamiento del los casos reales, se usan 5 grafos scale-free con 100.000 nodos
-
+# Lo que se hace es preparar los paquetes a utilizar, fijar una semilla PARA LAS OPERACIONES 
+# DE TORCH, y leer e interpretar los argumentos del comando de entrada.
+#Para esta lectura, se lee el parámetro "g", que sirve para indicar que tipo de datos sintéticos
+# a utilizar. Estan los grafos Gaussianos, Erdo-Renyi y Scale-free. Todos los grafos usados son
+# dirigidos.
+#-------------------------------------------------------------------
 
 
 #Load training data

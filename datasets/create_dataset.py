@@ -6,42 +6,98 @@ import glob
 import random
 random.seed(10)
 
+#-----------CREACIÓN DE DATASETS -------------------------
+'''
+1º Para crear los datasets, primero tienen en cuenta:
+    - El tamaño del modelo (adj_size), para actualizar las matrices de centralidad con ese tamaño
+    - La separación de los elementos para entrenamiento y de tests. Por ejemplo: si han generado
+        50 grafos desde generate_graph, de esos 50 hacen la separación, 40 para entrenamiento
+         y 10 para tests(VER SI LES SIRVE A ELLOS TAMBIÉN COMO VALIDACIÓN).
+    - Tras decir la separación, se define EL Nº DE PERMUTACIONES A REALIZAR (num_copies)
+
+2º Para cada tipo de grafo sintético, preparan la lectura del archivo que contiene 
+    grafos, diccionario de centralidad, y la escritura se realizará en:
+        /datasets/data_split/TIPO_GRAFO/CENTRALIDAD/, en donde guardarán el dataset de entrenamiento
+        y el dataset de test.
+
+3º En la función **get_split** lo que hacen es separar la creación del dataset de entrenamiento
+    de la creación del dataset de test. El dataset de test NO PRESENTARÁ PERMUTACIONES. Pero al hacer la escritura,
+    el resultado será que TODO dato tendrá tamaño N_MAX, siendo N_MAX el tamaño del modelo. Los datos
+    que contendrán los datasets serán:
+        lista de grafos / lista de la secuencia de nodos / lista del nº de nodos de cada grafo 
+        / matriz de centralidad.
+        
+        Cada elemento tendrá por lo tanto: grafo-i, sencuencia-i, nº de nodos del grafo-i,
+        matriz de centralidad-i. La matriz está preparada para que añada 0s para aumentar la dimesión
+        a N_MAX.
+
+4º Ahora, en la función **create_dataset**, lo primero que se hace es inicializar los elementos
+que se van a guardar:
+    - list_graphs: lo ponen como lista vacía, y será donde se guarden los Tipo Graph de los elementos
+    (recuerda que cada elemento sería un grafo)
+    - list_node_num: lo ponen como lista vacía, y será donde guarden el tamaño del elemento-i
+    - list_n_sequence: lo ponen como lista vacía, y será donde guarden el nº de la secuencia del elemento.
+                        Esto es el nº de la permutación al que pertenece el elemento. Sirve para tener un
+                        orden de los elementos del dataset.
+    - cent_mat: lo inicializan con 0s , y es una matriz tamaño_modelo x n º elementos totales(nº grafos * nº de copias)
+
+5º Después de la inicialización, se va recorriendo la lista de grafos que se separaron
+
+'''
+
 def reorder_list(input_list,serial_list):
     new_list_tmp = [input_list[j] for j in serial_list]
     return new_list_tmp
 
 def create_dataset(list_data,num_copies):
-
-    adj_size = 10000
+    #-----AQUI OCURRE EL PASO 4º---------------------------------------
+    adj_size = 10000 #MAX_NODES
     num_data = len(list_data)
     total_num = num_data*num_copies
-    cent_mat = np.zeros((adj_size,total_num),dtype=np.float)
+    cent_mat = np.zeros((adj_size,total_num),dtype=np.float) #AQUI PREPARAN YA LA MATRIZ CON 0s
+    #AHORA, cent_mat= matriz de tamaño adj_size x total_num(nºdatos*permutaciones),
+    #indicando que para cada fila(que implica un elemento) hay adj_size columnas que indicarán
+    #las centralidades de cada nodo de ese elemento, y en casos en los que un elemento(un grafo)
+    #no tenga tantos nodos, se mantendrán los 0s de esos índices.
     list_graph = list()
     list_node_num = list()
     list_n_sequence = list()
     mat_index = 0
-    for g_data in list_data:
+    #------------------------------------------------------
+    for g_data in list_data: #Va recorriendo por cada grafo
+        #Para cada grafo, hace las num_copies permutaciones de sus nodos, y va moviendo sus centralidades
+        #a esos nodos, además de guardar el grafo original, el tamaño, los nodos permutados.
 
         graph, cent_dict = g_data
-        nodelist = [i for i in graph.nodes()]
+        nodelist = [i for i in graph.nodes()] #nodeList de tamaño N_i
         assert len(nodelist)==len(cent_dict),"Number of nodes are not equal"
         node_num = len(nodelist)
 
         for i in range(num_copies):
             tmp_nodelist = list(nodelist)
-            random.shuffle(tmp_nodelist)
+            random.shuffle(tmp_nodelist) #tmp_nodeList= lista de nodos desordenados
             list_graph.append(graph)
             list_node_num.append(node_num)
             list_n_sequence.append(tmp_nodelist)
 
             for ind,node in enumerate(tmp_nodelist):
+                #Con esto, se lee del diccionario del elemento la centralidad del nodo, y se guarda
+                # en la matriz.
+                #ESTO ESTA HECHO DE TAL FORMA QUE PARA CADA ELEMENTO DE LA LISTA, SE VAYAN GUARDANDO
+                #SUS CENTRALIDADES PERMUTADAS num_copies VECES.
                 cent_mat[ind,mat_index] = cent_dict[node]
             mat_index +=  1
 
 
     serial_list = [i for i in range(total_num)]
     random.shuffle(serial_list)
-
+    #Esto me genera las secuencias de las permutaciones
+    
+    #Esto sirve para reasignar y reordenar los datos, para que el orden que se siga en todas esas listas
+    #permita identificar a cada elemento por separado.
+    
+    #Es decir, que si yo cojo el elemento i del dataset, al escoger ese elemento tenga
+    #su grafo-i, sus nodos permutados -i , su tamaño, su matriz de centralidad.
     list_graph = reorder_list(list_graph,serial_list)
     list_n_sequence = reorder_list(list_n_sequence,serial_list)
     list_node_num = reorder_list(list_node_num,serial_list)
@@ -50,7 +106,7 @@ def create_dataset(list_data,num_copies):
 
     return list_graph, list_n_sequence, list_node_num, cent_mat
 
-
+#AQUÍ OCURRE EL PASO 3º----------------------
 def get_split(source_file,num_train,num_test,num_copies,adj_size,save_path):
 
     with open(source_file,"rb") as fopen:
@@ -75,7 +131,8 @@ def get_split(source_file,num_train,num_test,num_copies,adj_size,save_path):
 
 #creating training/test dataset split for the model
 
-adj_size = 10000
+#--------AQUÍ SE DA EL PASO 1º------------------------------
+adj_size = 10000 #MAX_NODES
 graph_types = ["ER","SF","GRP"]
 num_train = 40
 num_test = 10
@@ -84,7 +141,9 @@ num_test = 10
 num_copies = 6
 
 #Total number of training graphs = 40*6 = 240
+#------------------------------------------------------------
 
+#----------AQUÍ SE DA EL PASO 2º----------------------------
 for g_type in graph_types:
     print("Loading graphs from pickle files...")
     bet_source_file = "./graphs/"+ g_type + "_data_bet.pickle"
@@ -100,7 +159,7 @@ for g_type in graph_types:
     #save closeness split
     get_split(close_source_file,num_train,num_test,num_copies,adj_size,save_path_close)
     print(" Data split saved.")
-
+#-------------------------------------------------------------------
 
 
 
