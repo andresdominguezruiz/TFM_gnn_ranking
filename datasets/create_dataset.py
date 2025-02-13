@@ -41,7 +41,23 @@ que se van a guardar:
                         orden de los elementos del dataset.
     - cent_mat: lo inicializan con 0s , y es una matriz tamaño_modelo x n º elementos totales(nº grafos * nº de copias)
 
-5º Después de la inicialización, se va recorriendo la lista de grafos que se separaron
+5º Después de la inicialización, se va recorriendo la lista de grafos que se separaron, y dentro
+ de ese bucle lo que se hace es:
+    - Hacer num_copies permutaciones de los nodos de ese grafo
+    - En cada permutación, se obtiene un orden de nodos diferente, lo cuál se aprovecha
+        para añadir en la matriz cent_mat [indice del nodo, nº de permutación]= centralidad del nodo
+    - A la vez, se va guardando en list_graphs, list_node_num y list_n_sequency sus elementos.
+     El grafo realmente no se toca, lo que se toca es su lista de nodos, la cuál se guarda su permutación
+    en list_n_sequency.
+
+6º Una vez recorrido todos los grafos num_copies veces, se hace una REORDENACIÓN DE TODAS LAS LISTAS.
+    Es decir, de todos los elementos (total_num), se crea una ordenación a seguir para las listas.
+    EJ: si las listas estaban de esta forma=> elemento1_1,elemento1_2,...elemento1_n, elemento2_1....
+    , pasan a la siguiente forma: elemento35_2, elemento20_5,.....
+    
+    Es decir, RANDOMIZA EL DATASET.
+    
+    
 
 '''
 
@@ -64,6 +80,7 @@ def create_dataset(list_data,num_copies):
     list_n_sequence = list()
     mat_index = 0
     #------------------------------------------------------
+    #-------------AQUI OCURRE PASO 5º----------------------------
     for g_data in list_data: #Va recorriendo por cada grafo
         #Para cada grafo, hace las num_copies permutaciones de sus nodos, y va moviendo sus centralidades
         #a esos nodos, además de guardar el grafo original, el tamaño, los nodos permutados.
@@ -88,22 +105,16 @@ def create_dataset(list_data,num_copies):
                 cent_mat[ind,mat_index] = cent_dict[node]
             mat_index +=  1
 
-
+    #----------------------------------------
+    #----------AQUÍ OCURRE EL PASO 6º---------------------
     serial_list = [i for i in range(total_num)]
     random.shuffle(serial_list)
-    #Esto me genera las secuencias de las permutaciones
-    
-    #Esto sirve para reasignar y reordenar los datos, para que el orden que se siga en todas esas listas
-    #permita identificar a cada elemento por separado.
-    
-    #Es decir, que si yo cojo el elemento i del dataset, al escoger ese elemento tenga
-    #su grafo-i, sus nodos permutados -i , su tamaño, su matriz de centralidad.
     list_graph = reorder_list(list_graph,serial_list)
     list_n_sequence = reorder_list(list_n_sequence,serial_list)
     list_node_num = reorder_list(list_node_num,serial_list)
     cent_mat_tmp = cent_mat[:,np.array(serial_list)]
     cent_mat = cent_mat_tmp
-
+    #---------------------------------------------------------------------
     return list_graph, list_n_sequence, list_node_num, cent_mat
 
 #AQUÍ OCURRE EL PASO 3º----------------------
