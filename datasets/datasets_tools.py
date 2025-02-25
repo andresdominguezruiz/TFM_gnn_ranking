@@ -5,6 +5,7 @@ import time
 import glob
 import random
 random.seed(10)
+from networkit import *
 
 #-----------CREACIÓN DE DATASETS -------------------------
 '''
@@ -60,19 +61,85 @@ que se van a guardar:
     
 
 '''
+def nx2nkit(g_nx):
+    
+    node_num = g_nx.number_of_nodes()
+    g_nkit = Graph(directed=True)
+    
+    for i in range(node_num):
+        g_nkit.addNode()
+    
+    for e1,e2 in g_nx.edges():
+        g_nkit.addEdge(e1,e2)
+        
+    return g_nkit
+
+def cal_exact_bet(g_nkit):
+
+    #exact_bet = nx.betweenness_centrality(g_nx,normalized=True)
+
+    exact_bet = centrality.Betweenness(g_nkit,normalized=True).run().ranking()
+    exact_bet_dict = dict()
+    for j in exact_bet:
+        exact_bet_dict[j[0]] = j[1]
+    return exact_bet_dict
+
+def cal_exact_close(g_nkit):
+    
+    #exact_close = nx.closeness_centrality(g_nx, reverse=False)
+
+    exact_close = centrality.Closeness(g_nkit,True,1).run().ranking()
+
+    exact_close_dict = dict()
+    for j in exact_close:
+        exact_close_dict[j[0]] = j[1]
+
+    return exact_close_dict
+
+
+def load_txt_graph(file_path, centrality_type):
+    G = nx.DiGraph()
+
+    with open(file_path, "r") as f:
+        edges = set()
+        nodes = set()
+        for line in f:
+            line = line.strip()
+            if line.startswith("#") or not line:
+                continue
+            node1, node2 = map(int, line.split())
+            edges.add((node1, node2))
+            nodes.update([node1, node2])
+
+    G.add_edges_from(edges)
+    G.add_nodes_from(nodes)
+
+    mapping = {old: new for new, old in enumerate(G.nodes())}
+    G_reset = nx.relabel_nodes(G, mapping)
+    #-----Hay que pasarlo al otro formato de Graph para el cálculo exacto de las centralidades
+    g_nkit=nx2nkit(G_reset)
+    if centrality_type == "betweenness":
+        centrality = cal_exact_bet(g_nkit)
+    elif centrality_type == "closeness":
+        centrality = cal_exact_close(g_nkit)
+    else:
+        raise ValueError("centrality_type debe ser 'betweenness' o 'closeness'")
+    
+    return G_reset, centrality
+
+
 
 def reorder_list(input_list,serial_list):
     new_list_tmp = [input_list[j] for j in serial_list]
     return new_list_tmp
 
-def create_dataset(list_data,num_copies):
+def create_dataset(list_data,num_copies,model_size):
     #-----AQUI OCURRE EL PASO 4º---------------------------------------
-    adj_size = 10000 #MAX_NODES
+    adj_size = model_size #MAX_NODES
     num_data = len(list_data)
     total_num = num_data*num_copies
     cent_mat = np.zeros((adj_size,total_num),dtype=np.float) #AQUI PREPARAN YA LA MATRIZ CON 0s
-    #AHORA, cent_mat= matriz de tamaño adj_size(COLUMNAS) x total_num(FILAS)(nºdatos*permutaciones)
-    # ,
+    #AHORA, cent_mat= matriz de tamaño adj_size x total_num(nºdatos*permutaciones),
     #indicando que para cada fila(que implica un elemento) hay adj_size columnas que indicarán
     #las centralidades de cada nodo de ese elemento, y en casos en los que un elemento(un grafo)
     #no tenga tantos nodos, se mantendrán los 0s de esos índices.
@@ -140,39 +207,23 @@ def get_split(source_file,num_train,num_test,num_copies,adj_size,save_path):
         pickle.dump([list_graph,list_n_sequence,list_node_num,cent_mat],fopen)
 
 
+def get_split_real_data(source_train_file,source_real_file,num_copies,model_size,save_path,centrality):
 
-#creating training/test dataset split for the model
+    with open(source_train_file,"rb") as fopen:
+        list_data = pickle.load(fopen)
+    
+    #For training split
+    list_graph, list_n_sequence, list_node_num, cent_mat = create_dataset(list_data,num_copies,model_size)
 
-#--------AQUÍ SE DA EL PASO 1º------------------------------
-adj_size = 10000 #MAX_NODES , ESTE REALMENTE NO ES USADO.
-graph_types = ["ER","SF","GRP"]
-num_train = 40
-num_test = 10
-#Number of permutations for node sequence
-#Can be raised higher to get more training graphs
-num_copies = 6
+    with open(save_path+"training.pickle","wb") as fopen:
+        pickle.dump([list_graph,list_n_sequence,list_node_num,cent_mat],fopen)
 
-#Total number of training graphs = 40*6 = 240
-#------------------------------------------------------------
+    #For test split
+    list_test_data=list()
+    real_graph,centrality_dicc=load_txt_graph(source_real_file,centrality)
+    list_test_data.append([real_graph,centrality_dicc])
+    
+    list_graph, list_n_sequence, list_node_num, cent_mat = create_dataset(list_test_data,1,model_size)
 
-#----------AQUÍ SE DA EL PASO 2º----------------------------
-for g_type in graph_types:
-    print("Loading graphs from pickle files...")
-    bet_source_file = "./graphs/"+ g_type + "_data_bet.pickle"
-    close_source_file = "./graphs/"+ g_type + "_data_close.pickle"
-
-    #paths for saving splits
-    save_path_bet = "./data_splits/"+g_type+"/betweenness/"
-    save_path_close = "./data_splits/"+g_type+"/closeness/"
-
-    #save betweenness split
-    get_split(bet_source_file,num_train,num_test,num_copies,adj_size,save_path_bet)
-
-    #save closeness split
-    get_split(close_source_file,num_train,num_test,num_copies,adj_size,save_path_close)
-    print(" Data split saved.")
-#-------------------------------------------------------------------
-
-
-
-
+    with open(save_path+"test.pickle","wb") as fopen:
+        pickle.dump([list_graph,list_n_sequence,list_node_num,cent_mat],fopen)
