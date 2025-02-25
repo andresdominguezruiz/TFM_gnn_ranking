@@ -74,6 +74,17 @@ def nx2nkit(g_nx):
         
     return g_nkit
 
+def obtain_dictionary(elements):
+    dictionary=dict()
+    for j in elements:
+        dictionary[j[0]] = j[1]
+    return dictionary
+
+def cal_exact_page_rank(g_nkit):
+    exact_page_rank= centrality.PageRank(g_nkit,normalized=True).run().ranking()
+    exact_page_rank_dict = obtain_dictionary(exact_page_rank)
+    return exact_page_rank_dict
+
 def cal_exact_bet(g_nkit):
 
     #exact_bet = nx.betweenness_centrality(g_nx,normalized=True)
