@@ -160,16 +160,21 @@ for g_type in graph_types:
     print("Loading graphs from pickle files...")
     bet_source_file = "./graphs/"+ g_type + "_data_bet.pickle"
     close_source_file = "./graphs/"+ g_type + "_data_close.pickle"
+    eigen_source_file = "./graphs/"+ g_type + "_data_eigen.pickle"
 
     #paths for saving splits
     save_path_bet = "./data_splits/"+g_type+"/betweenness/"
     save_path_close = "./data_splits/"+g_type+"/closeness/"
+    save_path_eigen = "./data_splits/"+g_type+"/eigen/"
 
     #save betweenness split
     get_split(bet_source_file,num_train,num_test,num_copies,adj_size,save_path_bet)
 
     #save closeness split
     get_split(close_source_file,num_train,num_test,num_copies,adj_size,save_path_close)
+#------------------------------------------------------
+    #save PageRank split
+    get_split(eigen_source_file,num_train,num_test,num_copies,adj_size,save_path_eigen)
     print(" Data split saved.")
 #-------------------------------------------------------------------
 

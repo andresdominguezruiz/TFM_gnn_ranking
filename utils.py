@@ -59,6 +59,17 @@ def nx2nkit(g_nx):
         
     return g_nkit
 
+def clique_check_for_eigen(index,node_sequence,all_out_dict,all_in_dict):
+    '''
+    El objetivo de esta función es decir si un nodo_i es importante (True) o no (False).
+    No será importante el nodo SI sólo presenta aristas de salida.
+    '''
+    node = node_sequence[index]
+    in_nodes = all_in_dict[node] # nodos que entran en nodo_i
+    if len(in_nodes)<=0:
+        return False
+
+    return True
 
 
 
@@ -289,6 +300,104 @@ def graph_to_adj_close(list_graph,list_n_sequence,list_node_num,model_size,print
             is_zero = clique_check(index,node_sequence,all_out_dict,all_in_dict)
             if is_zero == True:
               
+                degree_arr[index,0]=0.0
+
+
+        #modify the in-degree matrix for different layers
+
+        degree_arr = degree_arr.reshape(1,node_num)
+ 
+
+        #for out_degree
+        adj_temp_mod = adj_temp.multiply(csr_matrix(degree_arr))
+
+
+        rand_pos = 0
+        top_mat = csr_matrix((rand_pos,rand_pos))
+        remain_ind = max_nodes - rand_pos - node_num
+        bottom_mat = csr_matrix((remain_ind,remain_ind))
+        
+        list_rand_pos.append(rand_pos)
+        #remain_ind = max_nodes - node_num
+        #small_arr = csr_matrix((remain_ind,remain_ind))
+        
+        #adding extra padding to adj mat,normalise and save as torch tensor
+        
+        adj_temp = csr_matrix(adj_temp)
+        adj_mat = sp.block_diag((top_mat,adj_temp,bottom_mat))
+        
+        adj_temp_mod = csr_matrix(adj_temp_mod)
+        adj_mat_mod = sp.block_diag((top_mat,adj_temp_mod,bottom_mat))
+
+        
+        adj_mat = sparse_mx_to_torch_sparse_tensor(adj_mat)
+        list_adjacency.append(adj_mat)
+        
+        adj_mat_mod = sparse_mx_to_torch_sparse_tensor(adj_mat_mod)
+        list_adjacency_mod.append(adj_mat_mod)
+
+    print("")        
+    return list_adjacency,list_adjacency_mod
+
+
+#-----------------OBTENCIÓN DE MATRICES DE ADY. PARA AUTOVALOR Y CLUSTERING---------
+def graph_to_adj_eigen(list_graph,list_n_sequence,list_node_num,model_size):
+    '''
+    Output: Lista de matrices de Ady. modificada y sin modificar.(como el de closeness)
+    Aquí en vez de trabajar con Nzp, se trabajará con otro N.
+    Si un nodo sólo tienen aristas de salida, el autovalor de ese nodo tenderá a 0, por lo que no
+    aportan mucha información relevante. Por lo que se ignorarán esos nodos.
+    '''
+
+    list_adjacency = list()
+    list_adjacency_mod = list()
+    max_nodes = model_size
+    list_rand_pos = list()
+    
+    for i in range(len(list_graph)):
+        print(f"Processing graphs: {i+1}/{len(list_graph)}",end='\r')
+        graph = list_graph[i]
+        edges = list(graph.edges())
+        graph = nx.MultiDiGraph()
+        graph.add_edges_from(edges)
+
+        self_loops = list(nx.selfloop_edges(graph))
+        graph.remove_edges_from(self_loops)
+        node_sequence = list_n_sequence[i]
+
+        adj_temp = nx.adjacency_matrix(graph,nodelist=node_sequence)
+
+        node_num = list_node_num[i]
+        
+        adj_temp_t = adj_temp.transpose()
+        
+        arr_temp1 = np.sum(adj_temp,axis=1)
+        arr_temp2 = np.sum(adj_temp_t,axis=1)
+        
+
+        arr_multi = np.multiply(arr_temp1,arr_temp2)
+        
+        arr_multi = np.where(arr_multi>0,1.0,0.0)
+
+        
+        degree_arr = arr_multi
+        
+        non_zero_ind = np.nonzero(degree_arr.flatten())
+        non_zero_ind = non_zero_ind[0]
+        
+        g_nkit = nx2nkit(graph)
+        
+
+        in_n_seq = [node_sequence[nz_ind] for nz_ind in non_zero_ind]
+        all_out_dict = get_out_edges(g_nkit,node_sequence)
+        all_in_dict = get_in_edges(g_nkit,in_n_seq)
+
+        #AQUI SE IGNORARÁN OTROS NODOS---------
+        for index in non_zero_ind:
+           
+            is_zero = clique_check_for_eigen(index,node_sequence,all_out_dict,all_in_dict)
+            if is_zero == False: #Si ese nodo NO es importante al tener sólo nodos de salida,
+                #entonces ignoramelo en la matriz de adyacencia.
                 degree_arr[index,0]=0.0
 
 

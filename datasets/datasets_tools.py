@@ -80,6 +80,11 @@ def obtain_dictionary(elements):
         dictionary[j[0]] = j[1]
     return dictionary
 
+def cal_exact_local_transitivity(g_nkit):
+    exact_local_trans=centrality.LocalClusteringCoefficient(g_nkit,normalized=True).run().ranking()
+    exact_dict=obtain_dictionary(exact_local_trans)
+    return exact_dict
+
 def cal_exact_page_rank(g_nkit):
     exact_page_rank= centrality.PageRank(g_nkit,normalized=True).run().ranking()
     exact_page_rank_dict = obtain_dictionary(exact_page_rank)

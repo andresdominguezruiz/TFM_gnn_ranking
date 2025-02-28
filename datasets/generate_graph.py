@@ -101,7 +101,7 @@ for graph_type in graph_types:
         eigen_dict=cal_exact_page_rank(g_nkit)
         list_bet_data.append([g_nx,bet_dict])
         list_close_data.append([g_nx,close_dict])
-        list_eigen_data.append([g_nkit,eigen_dict])
+        list_eigen_data.append([g_nx,eigen_dict])
         #--------------------------------
 
     fname_bet = "./graphs/"+graph_type+"_data_bet.pickle"    
