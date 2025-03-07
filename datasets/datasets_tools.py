@@ -61,10 +61,10 @@ que se van a guardar:
     
 
 '''
-def nx2nkit(g_nx):
+def nx2nkit(g_nx,is_directed=True):
     
     node_num = g_nx.number_of_nodes()
-    g_nkit = Graph(directed=True)
+    g_nkit = Graph(directed=is_directed)
     
     for i in range(node_num):
         g_nkit.addNode()
@@ -81,7 +81,8 @@ def obtain_dictionary(elements):
     return dictionary
 
 def cal_exact_local_transitivity(g_nkit):
-    exact_local_trans=centrality.LocalClusteringCoefficient(g_nkit,normalized=True).run().ranking()
+    print(type(g_nkit))
+    exact_local_trans=centrality.LocalClusteringCoefficient(g_nkit).run().ranking()
     exact_dict=obtain_dictionary(exact_local_trans)
     return exact_dict
 
@@ -211,13 +212,13 @@ def get_split(source_file,num_train,num_test,num_copies,adj_size,save_path):
     assert num_train+num_test == num_graph,"Required split size doesn't match number of graphs in pickle file."
     
     #For training split
-    list_graph, list_n_sequence, list_node_num, cent_mat = create_dataset(list_data[:num_train],num_copies = num_copies)
+    list_graph, list_n_sequence, list_node_num, cent_mat = create_dataset(list_data[:num_train],num_copies,adj_size)
 
     with open(save_path+"training.pickle","wb") as fopen:
         pickle.dump([list_graph,list_n_sequence,list_node_num,cent_mat],fopen)
 
     #For test split
-    list_graph, list_n_sequence, list_node_num, cent_mat = create_dataset(list_data[num_train:num_train+num_test],num_copies = 1)
+    list_graph, list_n_sequence, list_node_num, cent_mat = create_dataset(list_data[num_train:num_train+num_test],1,adj_size)
 
     with open(save_path+"test.pickle","wb") as fopen:
         pickle.dump([list_graph,list_n_sequence,list_node_num,cent_mat],fopen)
@@ -243,3 +244,134 @@ def get_split_real_data(source_train_file,source_real_file,num_copies,model_size
 
     with open(save_path+"test.pickle","wb") as fopen:
         pickle.dump([list_graph,list_n_sequence,list_node_num,cent_mat],fopen)
+
+def create_graph(graph_type,is_directed=True):
+    '''
+    ER y GRP==> tipo DiGraph (2 pares de nodos sólo pueden estar conectados por 1 arista, no más)
+    
+    SF==> tipo MultiDiGraph (2 pares de nodos pueden tener muchas aristas a la vez entre si)
+    '''
+
+    num_nodes = np.random.randint(5000,10000) #<---AQUI ESTÁ EL MAX NODES DE ESOS GRAFOS
+
+    if graph_type == "ER":
+        #Erdos-Renyi random graphs
+        p = np.random.randint(2,25)*0.0001
+        g_nx = nx.generators.random_graphs.fast_gnp_random_graph(num_nodes,p = p,directed = is_directed)
+        return g_nx
+
+    if graph_type == "SF":
+        #Scalefree graphs
+        alpha = np.random.randint(40,60)*0.01
+        gamma = 0.05
+        beta = 1 - alpha - gamma
+        g_nx = nx.scale_free_graph(num_nodes,alpha = alpha,beta = beta,gamma = gamma)
+        return g_nx
+
+
+    if graph_type == "GRP":
+        #Gaussian-Random Partition Graphs
+        s = np.random.randint(200,1000)
+        v = np.random.randint(200,1000)
+        p_in = np.random.randint(2,25)*0.0001
+        p_out = np.random.randint(2,25)*0.0001
+        g_nx = nx.generators.gaussian_random_partition_graph(num_nodes,s = s, v = v, p_in = p_in, p_out = p_out, directed = is_directed)
+        assert nx.is_directed(g_nx)==True,"Not directed"
+        return g_nx
+
+
+def complete_generation(graph_types,num_of_graphs):
+    for graph_type in graph_types:
+        print("###################")
+        print(f"Generating graph type : {graph_type}")
+        print(f"Number of graphs to be generated:{num_of_graphs}")
+        list_bet_data = list()
+        list_close_data = list()
+        list_eigen_data=list()
+        list_clustering_data=list()
+        print("Generating graphs and calculating centralities...")
+        for i in range(num_of_graphs):
+            print(f"Graph index:{i+1}/{num_of_graphs}",end='\r')
+            g_nx = create_graph(graph_type) #Aqui se da el 1º paso.
+            #----Aquí se da el paso 2º -----------
+            if nx.number_of_isolates(g_nx)>0:
+                g_nx.remove_nodes_from(list(nx.isolates(g_nx)))
+                g_nx = nx.convert_node_labels_to_integers(g_nx) 
+        #-------------------------------------------
+        #-----AQUI OCURRE EL PASO 3º-------------
+            g_nkit = nx2nkit(g_nx)
+            bet_dict = cal_exact_bet(g_nkit)
+            close_dict = cal_exact_close(g_nkit)
+            eigen_dict=cal_exact_page_rank(g_nkit)
+            clus_dict=cal_exact_local_transitivity(g_nkit)
+            list_bet_data.append([g_nx,bet_dict])
+            list_close_data.append([g_nx,close_dict])
+            list_eigen_data.append([g_nx,eigen_dict])
+            list_clustering_data.append([g_nx,clus_dict])
+        
+        #--------------------------------
+
+        fname_bet = "./graphs/"+graph_type+"_data_bet.pickle"    
+        fname_close = "./graphs/"+graph_type+"_data_close.pickle"
+        fname_eigen = "./graphs/"+graph_type+"_data_eigen.pickle"
+        fname_clus= "./graphs/"+graph_type+"_data_clustering.pickle"
+        #Aquí ocurre el paso 4º
+        with open(fname_bet,"wb") as fopen:
+            pickle.dump(list_bet_data,fopen)
+
+        with open(fname_close,"wb") as fopen1:
+            pickle.dump(list_close_data,fopen1)
+    
+        with open(fname_eigen,"wb") as fopen2:
+            pickle.dump(list_eigen_data,fopen2)
+        
+        with open(fname_clus,"wb") as fopen2:
+            pickle.dump(list_clustering_data,fopen2)
+        
+        print("")
+        print("Graphs saved")
+
+def generation_per_centrality(graph_types,num_of_graphs,centrality):
+    for graph_type in graph_types:
+        print(f"########## CENTRALITY TYPE: {centrality} #########")
+        print(f"Generating graph type : {graph_type}")
+        print(f"Number of graphs to be generated:{num_of_graphs}")
+        list_data=list()
+        print("Generating graphs and calculating centralities...")
+        for i in range(num_of_graphs):
+            print(f"Graph index:{i+1}/{num_of_graphs}",end='\r')
+            g_nx = create_graph(graph_type) #Aqui se da el 1º paso.
+            #----Aquí se da el paso 2º -----------
+            if nx.number_of_isolates(g_nx)>0:
+                g_nx.remove_nodes_from(list(nx.isolates(g_nx)))
+                g_nx = nx.convert_node_labels_to_integers(g_nx)
+        #-------------------------------------------
+            g_nkit = None
+            if centrality == "clustering":
+                #el cálculo del clustering local SÓLO FUNCIONA CON GRAFOS NO DIRIGIDOS
+                g_nkit = nx2nkit(g_nx,False)
+            else:
+                g_nkit=nx2nkit(g_nx)
+            dictionary=None
+            if centrality == "bet":
+                dictionary=cal_exact_bet(g_nkit)
+            elif centrality == "close":
+                dictionary=cal_exact_close(g_nkit)
+            elif centrality == "eigen":
+                dictionary=cal_exact_page_rank(g_nkit)
+            elif centrality == "clustering":
+                #Con SF da error, hay que investigar el motivo
+                Graph.removeSelfLoops(g_nkit)
+                dictionary=cal_exact_local_transitivity(g_nkit)
+            else:
+                raise ValueError(f"La centralidad {centrality} no es usada en el sistema")
+            
+            list_data.append([g_nx,dictionary])
+        #--------------------------------
+
+        fname = "./graphs/"+graph_type+"_data_"+centrality+".pickle"    
+        #Aquí ocurre el paso 4º
+        with open(fname,"wb") as fopen:
+            pickle.dump(list_data,fopen)
+        print("")
+        print("Graphs saved")

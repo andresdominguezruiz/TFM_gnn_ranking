@@ -84,6 +84,7 @@ for graph_type in graph_types:
     list_bet_data = list()
     list_close_data = list()
     list_eigen_data=list()
+    list_clustering_data=list()
     print("Generating graphs and calculating centralities...")
     for i in range(num_of_graphs):
         print(f"Graph index:{i+1}/{num_of_graphs}",end='\r')
@@ -102,6 +103,7 @@ for graph_type in graph_types:
         list_bet_data.append([g_nx,bet_dict])
         list_close_data.append([g_nx,close_dict])
         list_eigen_data.append([g_nx,eigen_dict])
+        
         #--------------------------------
 
     fname_bet = "./graphs/"+graph_type+"_data_bet.pickle"    
