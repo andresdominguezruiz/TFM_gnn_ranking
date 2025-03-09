@@ -13,8 +13,10 @@ import argparse
 #Loading graph data
 parser = argparse.ArgumentParser()
 parser.add_argument("--g",default="SF")
+parser.add_argument("--num_intermediate_layer",type=int,default=6)
 args = parser.parse_args()
 gtype = args.g
+num=args.num_intermediate_layer
 print(gtype)
 if gtype == "SF":
     data_path = "./datasets/data_splits/SF/clustering/"
@@ -93,14 +95,14 @@ def test(list_adj_test,list_adj_mod_test,list_num_node_test,bc_mat_test):
 
 
     print(f"    Average KT score on test graphs is: {np.mean(np.array(list_kt))} and std: {np.std(np.array(list_kt))}")
-
+    return np.mean(np.array(list_kt)),np.std(np.array(list_kt))
 
 
 #Model parameters
 hidden = 15
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = GNN_Clustering(ninput=model_size,nhid=hidden,dropout=0.6)
+model = GNN_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
 model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(),lr=0.0005)
@@ -108,16 +110,25 @@ num_epoch = 15
 
 print("Training")
 print(f"Number of epoches: {num_epoch}")
+kt_mean=None
+std_kt=None
 for e in range(num_epoch):
     print(f"Epoch number: {e+1}/{num_epoch}")
     train(list_adj_train,list_adj_mod_train,list_num_node_train,cc_mat_train)
 
     #to check test loss while training
     with torch.no_grad():
-        test(list_adj_test,list_adj_mod_test,list_num_node_test,cc_mat_test)
+        kt_mean,std_kt=test(list_adj_test,list_adj_mod_test,list_num_node_test,cc_mat_test)
 #test on 10 test graphs and print average KT Score and its stanard deviation
 #with torch.no_grad():
 #    test(list_adj_test,list_adj_mod_test,list_num_node_test,cc_mat_test)
-
+#----------------------------------------------
+#Código para guardar resultados
+list_data=list()
+list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type])
+with open(f"results/clustering/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_kt.pickle","wb") as fopen2:
+        pickle.dump(list_data,fopen2)
+print("")
+print("Results saved")
 
     

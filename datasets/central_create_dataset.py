@@ -23,13 +23,14 @@ centrality_type=args.centrality
 
 #--------AQUÍ SE DA EL PASO 1º------------------------------
 adj_size = args.model_size #MAX_NODES , ESTE REALMENTE NO ES USADO.
-graph_types = ["ER","GRP"]
+graph_types = ["SF","ER","GRP"]
 num_train = args.split_train
 num_test = args.split_test
 #Number of permutations for node sequence
 #Can be raised higher to get more training graphs
 num_copies = args.num_copies
 
+all_cen=["clustering","bet","close","eigen"]
 #Total number of training graphs = 40*6 = 240
 #------------------------------------------------------------
 def prepare_dataset_creation(g_type,centrality_type,num_train,num_test,num_copies,model_size):
@@ -48,8 +49,14 @@ def prepare_dataset_creation(g_type,centrality_type,num_train,num_test,num_copie
     print(" Data split saved.")
 
 #----------AQUÍ SE DA EL PASO 2º----------------------------
-for g_type in graph_types:
-    prepare_dataset_creation(g_type,centrality_type,num_train,num_test,num_copies,adj_size)
+if centrality_type!="all":
+    for g_type in graph_types:
+        prepare_dataset_creation(g_type,centrality_type,num_train,num_test,num_copies,adj_size)
+
+else:
+    for cen in all_cen:
+        for g_type in graph_types:
+            prepare_dataset_creation(g_type,cen,num_train,num_test,num_copies,adj_size)
 #-------------------------------------------------------------------
 
 

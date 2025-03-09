@@ -300,10 +300,12 @@ def complete_generation(graph_types,num_of_graphs):
         #-------------------------------------------
         #-----AQUI OCURRE EL PASO 3º-------------
             g_nkit = nx2nkit(g_nx)
+            g_nkit_for_clus= nx2nkit(g_nx,False)
             bet_dict = cal_exact_bet(g_nkit)
             close_dict = cal_exact_close(g_nkit)
             eigen_dict=cal_exact_page_rank(g_nkit)
-            clus_dict=cal_exact_local_transitivity(g_nkit)
+            Graph.removeSelfLoops(g_nkit_for_clus)
+            clus_dict=cal_exact_local_transitivity(g_nkit_for_clus)
             list_bet_data.append([g_nx,bet_dict])
             list_close_data.append([g_nx,close_dict])
             list_eigen_data.append([g_nx,eigen_dict])
