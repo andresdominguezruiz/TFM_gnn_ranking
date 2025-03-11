@@ -125,7 +125,7 @@ for e in range(num_epoch):
 #----------------------------------------------
 #Código para guardar resultados
 list_data=list()
-list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type])
+list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
 with open(f"results/clustering/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_kt.pickle","wb") as fopen2:
         pickle.dump(list_data,fopen2)
 print("")

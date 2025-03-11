@@ -133,6 +133,8 @@ class CNN_Layer(Module):
     def forward(self, input, adj):
         """
         input: (batch_size, num_nodes, in_features) -> características de nodos
+        La idea de las capas convolucionales es que están hechas para procesamiento de imágenes,
+        por lo que la matriz de adyacencia hay que TRANSFORMARLA en algo con las mismas dimensiones que una imagen.
         adj: (batch_size, num_nodes, num_nodes) o (num_nodes, num_nodes)
         """
         

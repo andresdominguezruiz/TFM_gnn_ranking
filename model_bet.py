@@ -6,7 +6,6 @@ from layer import MLP
 import torch 
 
 class GNN_Bet(nn.Module):
-    #TODO: Hay que actualizar denuevo la forma de las capas, porque asi siempre da el mismo resultado.
     def __init__(self, ninput, nhid, dropout, num_intermediate_layers=4):
         super(GNN_Bet, self).__init__()
 

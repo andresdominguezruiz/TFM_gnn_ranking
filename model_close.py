@@ -40,4 +40,4 @@ class GNN_Close(nn.Module):
 
     def get_gnn_type(self):
         """Devuelve el tipo de GNN utilizado en la implementación."""
-        return "GNN_Close (basado en capas GNN_Layer y GNN_Layer_Init)"
+        return "GNN"
