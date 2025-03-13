@@ -3,6 +3,8 @@ import numpy as np
 import pickle
 import networkx as nx
 import torch
+from exp_layer_type.conv_betweenness import CNN_Bet
+from exp_layer_type.transformer_betweenness import Transformer_Bet
 from utils import *
 import random
 import torch.nn as nn
@@ -14,9 +16,11 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--g",default="SF")
 parser.add_argument("--num_intermediate_layer",type=int,default=6)
+parser.add_argument("--gnn",default="GNN")
 args = parser.parse_args()
 gtype = args.g
 num=args.num_intermediate_layer
+gnn_type=args.gnn
 print(gtype)
 #La etiqueta que se le pone al final del comando sirve para determinar el tipo de grafos a utilizar
 
@@ -166,7 +170,14 @@ def test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test):
 hidden = 12
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = GNN_Bet(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+model=None
+if gnn_type=="GNN":
+    model = GNN_Bet(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+elif gnn_type=="CNN":
+    model = CNN_Bet(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+elif gnn_type=="Transformer":
+    model = Transformer_Bet(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+
 model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(),lr=0.0005)

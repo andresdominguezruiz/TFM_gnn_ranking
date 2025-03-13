@@ -1,17 +1,17 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from layer import GNN_Layer
+from layer import CNN_Layer, GNN_Layer
 from layer import GNN_Layer_Init
 from layer import MLP
 import torch 
 
-class GNN_Eigen(nn.Module):
+class CNN_PageRank(nn.Module):
     def __init__(self, ninput, nhid, dropout, num_intermediate_layers=6):
-        super(GNN_Eigen, self).__init__()
+        super(CNN_PageRank, self).__init__()
 
         self.gc1 = GNN_Layer_Init(ninput, nhid)
-        self.intermediate_layers = [GNN_Layer(nhid, nhid) for _ in range(num_intermediate_layers)]
-        self.gc_last = GNN_Layer(nhid, nhid)
+        self.intermediate_layers = [CNN_Layer(nhid, nhid) for _ in range(num_intermediate_layers)]
+        self.gc_last = CNN_Layer(nhid, nhid)
         self.num_intermediate_layers = num_intermediate_layers
 
         self.dropout = dropout
@@ -36,4 +36,4 @@ class GNN_Eigen(nn.Module):
 
     def get_gnn_type(self):
         """Devuelve el tipo de GNN utilizado en la implementación."""
-        return "GNN"
+        return "CNN"

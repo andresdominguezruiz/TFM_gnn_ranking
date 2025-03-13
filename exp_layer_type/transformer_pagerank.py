@@ -1,12 +1,13 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from layer import Transformer_Layer, GNN_Layer_Init, MLP
+from layer import GNN_Layer, Transformer_Layer
+from layer import GNN_Layer_Init
+from layer import MLP
 import torch 
 
-
-class Transformer_Close(nn.Module):
+class Transformer_PageRank(nn.Module):
     def __init__(self, ninput, nhid, dropout, num_intermediate_layers=6):
-        super(Transformer_Close, self).__init__()
+        super(Transformer_PageRank, self).__init__()
 
         self.gc1 = GNN_Layer_Init(ninput, nhid)
         self.intermediate_layers = [Transformer_Layer(nhid, nhid) for _ in range(num_intermediate_layers)]
@@ -30,9 +31,9 @@ class Transformer_Close(nn.Module):
         return score_top
     
     def get_num_intermediate_layers(self):
-        """Devuelve la cantidad de capas intermedias utilizadas en la red Transformer."""
+        """Devuelve la cantidad de capas intermedias utilizadas en la red GNN."""
         return self.num_intermediate_layers
 
     def get_gnn_type(self):
-        """Devuelve el tipo de modelo utilizado en la implementación."""
+        """Devuelve el tipo de GNN utilizado en la implementación."""
         return "Transformer"

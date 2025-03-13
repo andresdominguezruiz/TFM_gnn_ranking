@@ -16,9 +16,11 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--g",default="SF")
 parser.add_argument("--num_intermediate_layer",type=int,default=6)
+parser.add_argument("--gnn",default="GNN")
 args = parser.parse_args()
 gtype = args.g
 num=args.num_intermediate_layer
+gnn_type=args.gnn
 print(gtype)
 if gtype == "SF":
     data_path = "./datasets/data_splits/SF/closeness/"
@@ -105,7 +107,14 @@ def test(list_adj_test,list_adj_mod_test,list_num_node_test,bc_mat_test):
 hidden = 10
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = GNN_Close(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+model=None
+if gnn_type=="GNN":
+    model = GNN_Close(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+elif gnn_type=="CNN":
+    model = CNN_Close(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+elif gnn_type=="Transformer":
+    model = Transformer_Close(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+
 model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(),lr=0.0005)

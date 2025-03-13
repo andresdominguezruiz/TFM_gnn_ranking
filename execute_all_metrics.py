@@ -1,7 +1,7 @@
 import subprocess
 
-# Rango de valores para i
-for i in range(1, 16):
+#IDEA: Estudiar nº de capas óptima en GNN con grafos de entre 100000-50000 nodos
+for i in range(1, 20):
     # Construir el comando con el valor de i
     print(f"###########BETWEENNESS CON {i} CAPAS INTERMEDIAS################")
     comando_bet = f"python betweenness.py --g SF --num_intermediate_layer {i}"

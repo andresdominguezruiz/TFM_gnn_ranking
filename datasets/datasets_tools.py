@@ -252,7 +252,7 @@ def create_graph(graph_type,is_directed=True):
     SF==> tipo MultiDiGraph (2 pares de nodos pueden tener muchas aristas a la vez entre si)
     '''
 
-    num_nodes = np.random.randint(5000,10000) #<---AQUI ESTÁ EL MAX NODES DE ESOS GRAFOS
+    num_nodes = np.random.randint(50000,100000) #<---AQUI ESTÁ EL MAX NODES DE ESOS GRAFOS
 
     if graph_type == "ER":
         #Erdos-Renyi random graphs
@@ -351,6 +351,7 @@ def generation_per_centrality(graph_types,num_of_graphs,centrality):
             g_nkit = None
             if centrality == "clustering":
                 #el cálculo del clustering local SÓLO FUNCIONA CON GRAFOS NO DIRIGIDOS
+                print("Diferente")
                 g_nkit = nx2nkit(g_nx,False)
             else:
                 g_nkit=nx2nkit(g_nx)
