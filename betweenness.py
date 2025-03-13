@@ -17,10 +17,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--g",default="SF")
 parser.add_argument("--num_intermediate_layer",type=int,default=6)
 parser.add_argument("--gnn",default="GNN")
+parser.add_argument("--model_size",type=int,default=10000)
 args = parser.parse_args()
 gtype = args.g
 num=args.num_intermediate_layer
 gnn_type=args.gnn
+model_size=args.model_size
 print(gtype)
 #La etiqueta que se le pone al final del comando sirve para determinar el tipo de grafos a utilizar
 
@@ -82,7 +84,7 @@ with open(data_path+"test.pickle","rb") as fopen:
 
 #-------------------------------------------------------------------
 
-model_size = 10000 # MAX_NODES DEL GENERATE_GRAPH
+
 #Una vez abierto los grafos, obtiene las matrices de adyacencia de los mismos.
 print(f"Graphs to adjacency conversion.")
 

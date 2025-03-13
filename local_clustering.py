@@ -17,10 +17,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--g",default="SF")
 parser.add_argument("--num_intermediate_layer",type=int,default=6)
 parser.add_argument("--gnn",default="GNN")
+parser.add_argument("--model_size",type=int,default=10000)
 args = parser.parse_args()
 gtype = args.g
 num=args.num_intermediate_layer
 gnn_type=args.gnn
+model_size=args.model_size
 print(gtype)
 if gtype == "SF":
     data_path = "./datasets/data_splits/SF/clustering/"
@@ -44,7 +46,7 @@ with open(data_path+"training.pickle","rb") as fopen:
 with open(data_path+"test.pickle","rb") as fopen:
     list_graph_test,list_n_seq_test,list_num_node_test,cc_mat_test = pickle.load(fopen)
 
-model_size = 10000
+
 #Get adjacency matrices from graphs
 print(f"Graphs to adjacency conversion.")
 
