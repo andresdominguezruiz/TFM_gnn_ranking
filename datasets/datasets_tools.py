@@ -244,15 +244,16 @@ def get_split_real_data(source_train_file,source_real_file,num_copies,model_size
 
     with open(save_path+"test.pickle","wb") as fopen:
         pickle.dump([list_graph,list_n_sequence,list_node_num,cent_mat],fopen)
+        
 
-def create_graph(graph_type,is_directed=True):
+def create_graph(graph_type,min_nodes=5000,max_nodes=10000,is_directed=True):
     '''
     ER y GRP==> tipo DiGraph (2 pares de nodos sólo pueden estar conectados por 1 arista, no más)
     
     SF==> tipo MultiDiGraph (2 pares de nodos pueden tener muchas aristas a la vez entre si)
     '''
 
-    num_nodes = np.random.randint(5000,10000) #<---AQUI ESTÁ EL MAX NODES DE ESOS GRAFOS
+    num_nodes = np.random.randint(min_nodes,max_nodes) #<---AQUI ESTÁ EL MAX NODES DE ESOS GRAFOS
 
     if graph_type == "ER":
         #Erdos-Renyi random graphs
@@ -280,7 +281,7 @@ def create_graph(graph_type,is_directed=True):
         return g_nx
 
 
-def complete_generation(graph_types,num_of_graphs):
+def complete_generation(graph_types,num_of_graphs,min_nodes=5000,max_nodes=10000):
     for graph_type in graph_types:
         print("###################")
         print(f"Generating graph type : {graph_type}")
@@ -292,7 +293,7 @@ def complete_generation(graph_types,num_of_graphs):
         print("Generating graphs and calculating centralities...")
         for i in range(num_of_graphs):
             print(f"Graph index:{i+1}/{num_of_graphs}",end='\r')
-            g_nx = create_graph(graph_type) #Aqui se da el 1º paso.
+            g_nx = create_graph(graph_type,min_nodes,max_nodes) #Aqui se da el 1º paso.
             #----Aquí se da el paso 2º -----------
             if nx.number_of_isolates(g_nx)>0:
                 g_nx.remove_nodes_from(list(nx.isolates(g_nx)))
@@ -300,10 +301,12 @@ def complete_generation(graph_types,num_of_graphs):
         #-------------------------------------------
         #-----AQUI OCURRE EL PASO 3º-------------
             g_nkit = nx2nkit(g_nx)
+            g_nkit_for_clus= nx2nkit(g_nx,False)
             bet_dict = cal_exact_bet(g_nkit)
             close_dict = cal_exact_close(g_nkit)
             eigen_dict=cal_exact_page_rank(g_nkit)
-            clus_dict=cal_exact_local_transitivity(g_nkit)
+            Graph.removeSelfLoops(g_nkit_for_clus)
+            clus_dict=cal_exact_local_transitivity(g_nkit_for_clus)
             list_bet_data.append([g_nx,bet_dict])
             list_close_data.append([g_nx,close_dict])
             list_eigen_data.append([g_nx,eigen_dict])
@@ -331,7 +334,7 @@ def complete_generation(graph_types,num_of_graphs):
         print("")
         print("Graphs saved")
 
-def generation_per_centrality(graph_types,num_of_graphs,centrality):
+def generation_per_centrality(graph_types,num_of_graphs,centrality,min_nodes=5000,max_nodes=10000):
     for graph_type in graph_types:
         print(f"########## CENTRALITY TYPE: {centrality} #########")
         print(f"Generating graph type : {graph_type}")
@@ -340,7 +343,7 @@ def generation_per_centrality(graph_types,num_of_graphs,centrality):
         print("Generating graphs and calculating centralities...")
         for i in range(num_of_graphs):
             print(f"Graph index:{i+1}/{num_of_graphs}",end='\r')
-            g_nx = create_graph(graph_type) #Aqui se da el 1º paso.
+            g_nx = create_graph(graph_type,min_nodes,max_nodes) #Aqui se da el 1º paso.
             #----Aquí se da el paso 2º -----------
             if nx.number_of_isolates(g_nx)>0:
                 g_nx.remove_nodes_from(list(nx.isolates(g_nx)))
@@ -349,6 +352,7 @@ def generation_per_centrality(graph_types,num_of_graphs,centrality):
             g_nkit = None
             if centrality == "clustering":
                 #el cálculo del clustering local SÓLO FUNCIONA CON GRAFOS NO DIRIGIDOS
+                print("Diferente")
                 g_nkit = nx2nkit(g_nx,False)
             else:
                 g_nkit=nx2nkit(g_nx)
