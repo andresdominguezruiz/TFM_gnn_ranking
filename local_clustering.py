@@ -4,7 +4,7 @@ import pickle
 import networkx as nx
 import torch
 from exp_layer_type.conv_clustering import CNN_Clustering
-from exp_layer_type.transformer_clustering import Transformer_Clustering
+from exp_layer_type.transformer_clustering import GAT_Clustering
 from utils import *
 import random
 import torch.nn as nn
@@ -34,6 +34,18 @@ elif gtype == "ER":
 elif gtype == "GRP":
     data_path = "./datasets/data_splits/GRP/clustering/"
     print("Gaussian Random Partition graphs selected.")
+
+elif gtype == "TU":
+    data_path = "./datasets/data_splits/TU/clustering/"
+    print("Turan graphs selected.")
+
+elif gtype == "FT":
+    data_path = "./datasets/data_splits/FT/clustering/"
+    print("Full Rary Tree graphs selected.")
+
+elif gtype == "FOR_EXP":
+    data_path = "./datasets/data_splits/FOR_EXP/clustering/"
+    print("Real data experimentation")
 
 
 
@@ -114,7 +126,7 @@ if gnn_type=="GNN":
 elif gnn_type=="CNN":
     model = CNN_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
 elif gnn_type=="Transformer":
-    model = Transformer_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+    model = GAT_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
 
 model.to(device)
 
@@ -139,7 +151,7 @@ for e in range(num_epoch):
 #Código para guardar resultados
 list_data=list()
 list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
-with open(f"results/clustering/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_kt.pickle","wb") as fopen2:
+with open(f"results/clustering/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}_kt.pickle","wb") as fopen2:
         pickle.dump(list_data,fopen2)
 print("")
 print("Results saved")

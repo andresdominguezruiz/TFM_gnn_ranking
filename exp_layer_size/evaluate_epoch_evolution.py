@@ -1,3 +1,4 @@
+
 import networkx as nx
 import pickle
 import numpy as np
@@ -8,27 +9,29 @@ random.seed(10)
 import plotly.graph_objects as go
 
 
-#TODO: ejecutar denuevo el de clustering porque se guardaba mal
-cents=["betweenness","closeness","page_rank","clustering"]
 
-def read_data(centrality,layers):
+layers=[1,3,5,7,10]
+
+def read_data(layer):
     data=[]
-    for i in range(1,layers+1):
-        with open(centrality+f"/{i}_GNN_kt.pickle","rb") as f:
-            arrays=pickle.load(f)
-            data.append(arrays[0][0])
-            
+    with open(f"results/betweenness/{layer}_GNN_SF_per_epoch_kt.pickle","rb") as f:
+        list=pickle.load(f)
+        for e in list:
+            data.append(e[0])
     return data
+            
+
     
 
 dicc=dict()
 
-for cent in cents:
-    data=read_data("results/"+cent,12)
-    dicc.update({cent:data})
+for layer in layers:
+    data=read_data(layer)
+    dicc.update({f"{layer} Capas intermedias":data})
 
 fig = go.Figure()
 # Agregar cada serie al gráfico con índices desde 1
+print(dicc)
 for clave, valores in dicc.items():
     fig.add_trace(go.Scatter(
         x=[i+1 for i in range(len(valores))],  # Índices desde 1
@@ -39,9 +42,9 @@ for clave, valores in dicc.items():
 
 # Configurar layout
 fig.update_layout(
-    title="Gráfica de Betweenness y Closeness",
-    xaxis_title="Número de capas intermedias",
-    yaxis_title="KT última época",
+    title="Gráfica de evolución de las épocas",
+    xaxis_title="Número de época",
+    yaxis_title="KT obtenido",
     xaxis=dict(tickmode='linear', dtick=1)  # Asegurar que los ticks sean enteros
 )
 

@@ -5,7 +5,7 @@ import pickle
 import numpy as np
 import time
 from datasets_tools import *
-np.random.seed(1)
+
 import argparse
 from datasets_tools import *
 
@@ -26,7 +26,7 @@ maxi=args.max_nodes
 
 
 #EL SF DEVUELVE UN MULTIDRIGRAPH, Y ESE DA PROBLEMAS CON EL CLUSTERING
-graph_types = ["SF","ER","GRP"]
+graph_types = ["SF"]
 #centrality_types = ["bet","close","eigen","clustering"]
 
 if centrality_type == "all":

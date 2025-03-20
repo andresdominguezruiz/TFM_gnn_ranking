@@ -1,16 +1,18 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from layer import Transformer_Layer, GNN_Layer_Init, MLP
-import torch 
+import torch
+import torch_geometric.nn as geom_nn
+import torch_geometric.data as geom_data
 
-
-class Transformer_Close(nn.Module):
+#TODO: Cmabiar de Transformer a GAT
+class GAT_Close(nn.Module):
     def __init__(self, ninput, nhid, dropout, num_intermediate_layers=6):
-        super(Transformer_Close, self).__init__()
+        super(GAT_Close, self).__init__()
 
         self.gc1 = GNN_Layer_Init(ninput, nhid)
-        self.intermediate_layers = [Transformer_Layer(nhid, nhid) for _ in range(num_intermediate_layers)]
-        self.gc_last = Transformer_Layer(nhid, nhid)
+        self.intermediate_layers = [geom_nn.GATConv(nhid, nhid) for _ in range(num_intermediate_layers)]
+        self.gc_last = geom_nn.GATConv(nhid, nhid)
         self.num_intermediate_layers = num_intermediate_layers
 
         self.dropout = dropout
@@ -35,4 +37,4 @@ class Transformer_Close(nn.Module):
 
     def get_gnn_type(self):
         """Devuelve el tipo de modelo utilizado en la implementación."""
-        return "Transformer"
+        return "GAT"

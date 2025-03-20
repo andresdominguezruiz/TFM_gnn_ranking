@@ -280,6 +280,8 @@ def graph_to_adj_close(list_graph,list_n_sequence,list_node_num,model_size,print
         self_loops = list(nx.selfloop_edges(graph))
         graph.remove_edges_from(self_loops)
         node_sequence = list_n_sequence[i]
+        
+        
 
         adj_temp = nx.adjacency_matrix(graph,nodelist=node_sequence)
 
@@ -352,6 +354,61 @@ def graph_to_adj_close(list_graph,list_n_sequence,list_node_num,model_size,print
 
     print("")        
     return list_adjacency,list_adjacency_mod
+
+def graph_to_one_hot_matrix(list_graph,list_n_sequence,list_node_num,model_size,print_time=False):
+    '''
+    Aunque no se haya probado, este tipo de entrada NO tendría sentido, ya que
+    no proporciona información de nodos vecinos ni nada.
+    '''
+
+    list_adjacency = list()
+    list_adjacency_mod = list()
+    max_nodes = model_size
+    list_rand_pos = list()
+    
+    for i in range(len(list_graph)):
+        print(f"Processing graphs: {i+1}/{len(list_graph)}",end='\r')
+        graph = list_graph[i]
+        edges = list(graph.edges())
+        graph = nx.MultiDiGraph()
+        graph.add_edges_from(edges)
+
+        self_loops = list(nx.selfloop_edges(graph))
+        graph.remove_edges_from(self_loops)
+        node_sequence = list_n_sequence[i]
+        node_num = list_node_num[i]
+        
+        # Determinar el número de bits necesarios
+        n_bits = (model_size - 1).bit_length()  # Equivalente a ceil(log2(n_nodos))
+
+        # Inicializar matriz binaria
+        binary_matrix_list = []
+
+# Llenar la lista con la representación binaria de los índices de los nodos
+        for nodo in node_sequence:
+            bin_repr = list(map(int, format(nodo, f'0{n_bits}b')))
+            binary_matrix_list.append(bin_repr)
+        
+        rand_pos = 0
+        top_mat = csr_matrix((rand_pos,rand_pos))
+        remain_ind = max_nodes - rand_pos - node_num
+        bottom_mat = csr_matrix((remain_ind,remain_ind))
+
+# Convertir la lista en una matriz NumPy
+        binary_matrix_np = np.array(binary_matrix_list)
+
+# Convertir la matriz NumPy a una matriz dispersa CSR de Scipy
+        binary_matrix_sparse = csr_matrix(binary_matrix_np)
+        
+        mat = sp.block_diag((top_mat,binary_matrix_sparse,bottom_mat))
+
+        list_adjacency.append(mat)
+        list_adjacency_mod.append(mat)
+
+    print("")        
+    return list_adjacency,list_adjacency_mod
+
+
 
 def graph_to_adj_clustering(list_graph,list_n_sequence,list_node_num,model_size):
     '''

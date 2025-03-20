@@ -145,12 +145,12 @@ def get_split(source_file,num_train,num_test,num_copies,adj_size,save_path):
 
 #--------AQUÍ SE DA EL PASO 1º------------------------------
 adj_size = 10000 #MAX_NODES , ESTE REALMENTE NO ES USADO.
-graph_types = ["ER","SF","GRP"]
+graph_types = ["SF"]
 num_train = 40
 num_test = 10
 #Number of permutations for node sequence
 #Can be raised higher to get more training graphs
-num_copies = 6
+num_copies = 5
 
 #Total number of training graphs = 40*6 = 240
 #------------------------------------------------------------

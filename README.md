@@ -55,3 +55,7 @@ In case there are conflicts while installing the packages, please check the foll
 **Nota de Andrés:**
 Parece ser que desde Windows las dependencias están mezcladas, asi que fue necesario pasarlo al sistema de Ubuntu. Para crear entono virtual: python3.10 env/bin/activate, Y luego para activarlo: source env/bin/activate
 
+OTRA NOTA:
+
+ES MUY IMPORTANTE EL CAMBIO DE LA CAPA MLP: SINO, EL ENTRENAMIENTO ES IGNORADO
+

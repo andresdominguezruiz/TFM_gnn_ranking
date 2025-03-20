@@ -35,6 +35,18 @@ elif gtype == "GRP":
     data_path = "./datasets/data_splits/GRP/eigen/"
     print("Gaussian Random Partition graphs selected.")
 
+elif gtype == "TU":
+    data_path = "./datasets/data_splits/TU/eigen/"
+    print("Turan graphs selected.")
+
+elif gtype == "FT":
+    data_path = "./datasets/data_splits/FT/eigen/"
+    print("Full Rary Tree graphs selected.")
+
+elif gtype == "FOR_EXP":
+    data_path = "./datasets/data_splits/FOR_EXP/eigen/"
+    print("Real data experimentation")
+
 
 
 #Load training data
@@ -139,7 +151,7 @@ for e in range(num_epoch):
 #Código para guardar resultados
 list_data=list()
 list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
-with open(f"results/page_rank/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_kt.pickle","wb") as fopen2:
+with open(f"results/page_rank/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}_kt.pickle","wb") as fopen2:
         pickle.dump(list_data,fopen2)
 print("")
 print("Results saved")

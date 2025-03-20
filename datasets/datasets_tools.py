@@ -4,7 +4,7 @@ import numpy as np
 import time
 import glob
 import random
-random.seed(10)
+
 from networkit import *
 
 #-----------CREACIÓN DE DATASETS -------------------------
@@ -254,6 +254,20 @@ def create_graph(graph_type,min_nodes=5000,max_nodes=10000,is_directed=True):
     '''
 
     num_nodes = np.random.randint(min_nodes,max_nodes) #<---AQUI ESTÁ EL MAX NODES DE ESOS GRAFOS
+    #https://networkx.org/documentation/stable/reference/generators.html
+     #--------ADICIONALES----------------------------------------
+    if graph_type == "FT": #Full rary Tree
+        r= np.random.randint(10,45)
+        g_nx=nx.generators.full_rary_tree(r,num_nodes)
+        return g_nx
+    
+    
+    if graph_type == "TU": #Turan Graph
+        r= np.random.randint(5,num_nodes-1)
+        g_nx=nx.generators.turan_graph(num_nodes,r)
+        return g_nx
+    
+    #------------------------------------------------------------
 
     if graph_type == "ER":
         #Erdos-Renyi random graphs

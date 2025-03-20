@@ -6,7 +6,7 @@ import time
 import glob
 import random
 from datasets_tools import *
-random.seed(10)
+
 
 #creating training/test dataset split for the model
 
@@ -23,7 +23,7 @@ centrality_type=args.centrality
 
 #--------AQUÍ SE DA EL PASO 1º------------------------------
 adj_size = args.model_size #MAX_NODES , ESTE REALMENTE NO ES USADO.
-graph_types = ["SF","ER","GRP"]
+graph_types = ["SF"]
 num_train = args.split_train
 num_test = args.split_test
 #Number of permutations for node sequence
