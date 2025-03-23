@@ -12,9 +12,9 @@ class GAT_Bet(nn.Module):
         super(GAT_Bet, self).__init__()
 
         self.gc1 = GNN_Layer_Init(ninput, nhid)
-        self.intermediate_layers = [geom_nn.GATConv(nhid, nhid) for _ in range(num_intermediate_layers)]
+        self.intermediate_layers = [geom_nn.GATv2Conv(nhid, nhid) for _ in range(num_intermediate_layers)]
         print(len(self.intermediate_layers))
-        self.gc_last = geom_nn.GATConv(nhid, nhid)
+        self.gc_last = geom_nn.GATv2Conv(nhid, nhid)
         self.num_intermediate_layers = num_intermediate_layers
 
         self.dropout = dropout

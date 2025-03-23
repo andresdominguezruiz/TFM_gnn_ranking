@@ -72,6 +72,10 @@ elif gtype == "FT":
 elif gtype == "FOR_EXP":
     data_path = "./datasets/data_splits/FOR_EXP/betweenness/"
     print("Real data experimentation")
+    
+elif gtype == "HYP":
+    data_path = "./datasets/data_splits/HYP/betweenness/"
+    print("Real data experimentation")
 
 # Lo que se hace es preparar los paquetes a utilizar, fijar una semilla PARA LAS OPERACIONES 
 # DE TORCH, y leer e interpretar los argumentos del comando de entrada.
@@ -137,6 +141,8 @@ def train(list_adj_train,list_adj_t_train,list_num_node_train,bc_mat_train):
         
         loss_rank = loss_cal(y_out,true_val,num_nodes,device,model_size)
         loss_train = loss_train + float(loss_rank) #Esto realmente no sirve
+        torch.autograd.set_detect_anomaly(True)
+
         loss_rank.backward()
         optimizer.step()
 

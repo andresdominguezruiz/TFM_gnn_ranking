@@ -59,3 +59,6 @@ OTRA NOTA:
 
 ES MUY IMPORTANTE EL CAMBIO DE LA CAPA MLP: SINO, EL ENTRENAMIENTO ES IGNORADO
 
+**Grafos hiperbólicos**
+Para estos grafos, como de momento sólo nos interesan los nodos y aristas(no las propiedades), se puede leer de los grafos obtenidos el .edgelist y ya.
+

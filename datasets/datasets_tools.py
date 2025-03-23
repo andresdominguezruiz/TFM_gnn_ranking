@@ -5,6 +5,8 @@ import time
 import glob
 import random
 
+import torch
+torch.manual_seed(20)
 from networkit import *
 
 #-----------CREACIÓN DE DATASETS -------------------------
@@ -135,10 +137,16 @@ def load_txt_graph(file_path, centrality_type):
     G_reset = nx.relabel_nodes(G, mapping)
     #-----Hay que pasarlo al otro formato de Graph para el cálculo exacto de las centralidades
     g_nkit=nx2nkit(G_reset)
-    if centrality_type == "betweenness":
+    g_nkit_for_clus= nx2nkit(G_reset,False)
+    if centrality_type == "bet":
         centrality = cal_exact_bet(g_nkit)
-    elif centrality_type == "closeness":
+    elif centrality_type == "close":
         centrality = cal_exact_close(g_nkit)
+    elif centrality_type == "eigen":
+            centrality=cal_exact_page_rank(g_nkit)
+    elif centrality_type == "clustering":
+        Graph.removeSelfLoops(g_nkit_for_clus)
+        centrality = cal_exact_local_transitivity(g_nkit_for_clus)
     else:
         raise ValueError("centrality_type debe ser 'betweenness' o 'closeness'")
     
@@ -275,7 +283,7 @@ def create_graph(graph_type,min_nodes=5000,max_nodes=10000,is_directed=True):
         g_nx = nx.generators.random_graphs.fast_gnp_random_graph(num_nodes,p = p,directed = is_directed)
         return g_nx
 
-    if graph_type == "SF":
+    if graph_type == "SF" or graph_type=="FOR_EXP":
         #Scalefree graphs
         alpha = np.random.randint(40,60)*0.01
         gamma = 0.05
@@ -296,6 +304,12 @@ def create_graph(graph_type,min_nodes=5000,max_nodes=10000,is_directed=True):
 
 
 def complete_generation(graph_types,num_of_graphs,min_nodes=5000,max_nodes=10000):
+    if graph_types[0]=="HYP":
+        hyperbolic_generation("bet")
+        hyperbolic_generation("close")
+        hyperbolic_generation("clustering")
+        hyperbolic_generation("eigen")
+    graph_types.remove("HYP")
     for graph_type in graph_types:
         print("###################")
         print(f"Generating graph type : {graph_type}")
@@ -347,6 +361,19 @@ def complete_generation(graph_types,num_of_graphs,min_nodes=5000,max_nodes=10000
         
         print("")
         print("Graphs saved")
+
+def hyperbolic_generation(centrality):
+    list_data=list()
+    for i in range(1,16):
+        gi,dicc=load_txt_graph(f"./hyperbolic/g{i}.edgelist",centrality)
+        list_data.append([gi,dicc])
+    
+    fname = "./graphs/HYP_data_"+centrality+".pickle"    
+        #Aquí ocurre el paso 4º
+    with open(fname,"wb") as fopen:
+            pickle.dump(list_data,fopen)
+    print("")
+    print("Graphs saved")
 
 def generation_per_centrality(graph_types,num_of_graphs,centrality,min_nodes=5000,max_nodes=10000):
     for graph_type in graph_types:

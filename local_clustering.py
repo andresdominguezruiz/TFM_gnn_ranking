@@ -4,7 +4,8 @@ import pickle
 import networkx as nx
 import torch
 from exp_layer_type.conv_clustering import CNN_Clustering
-from exp_layer_type.transformer_clustering import GAT_Clustering
+from exp_layer_type.sage_clustering import GSAGE_Clustering
+from exp_layer_type.gat_clustering import GAT_Clustering
 from utils import *
 import random
 import torch.nn as nn
@@ -45,6 +46,10 @@ elif gtype == "FT":
 
 elif gtype == "FOR_EXP":
     data_path = "./datasets/data_splits/FOR_EXP/clustering/"
+    print("Real data experimentation")
+
+elif gtype == "HYP":
+    data_path = "./datasets/data_splits/HYP/betweenness/"
     print("Real data experimentation")
 
 
@@ -125,9 +130,11 @@ if gnn_type=="GNN":
     model = GNN_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
 elif gnn_type=="CNN":
     model = CNN_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
-elif gnn_type=="Transformer":
+elif gnn_type=="GAT":
     model = GAT_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
-
+elif gnn_type=="SAGE":
+    model = GSAGE_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+    
 model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(),lr=0.0005)

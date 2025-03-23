@@ -5,10 +5,10 @@ import pickle
 import numpy as np
 import time
 from datasets_tools import *
-
+import torch
 import argparse
 from datasets_tools import *
-
+torch.manual_seed(20)
 
 
 parser = argparse.ArgumentParser(description="Generar grafos y calcular centralidades.")
@@ -26,7 +26,7 @@ maxi=args.max_nodes
 
 
 #EL SF DEVUELVE UN MULTIDRIGRAPH, Y ESE DA PROBLEMAS CON EL CLUSTERING
-graph_types = ["SF"]
+graph_types = ["HYP"]
 #centrality_types = ["bet","close","eigen","clustering"]
 
 if centrality_type == "all":

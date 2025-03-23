@@ -5,8 +5,9 @@ import numpy as np
 import time
 import glob
 import random
+import torch
 from datasets_tools import *
-
+torch.manual_seed(20)
 
 #creating training/test dataset split for the model
 
@@ -23,7 +24,7 @@ centrality_type=args.centrality
 
 #--------AQUÍ SE DA EL PASO 1º------------------------------
 adj_size = args.model_size #MAX_NODES , ESTE REALMENTE NO ES USADO.
-graph_types = ["SF"]
+graph_types = ["HYP"]
 num_train = args.split_train
 num_test = args.split_test
 #Number of permutations for node sequence
@@ -45,7 +46,10 @@ def prepare_dataset_creation(g_type,centrality_type,num_train,num_test,num_copie
         c_type=centrality_type
     
     save_path="./data_splits/"+g_type+"/"+c_type+"/"
-    get_split(source_file,num_train,num_test,num_copies,model_size,save_path)
+    if g_type=="FOR_EXP":
+        get_split_real_data(source_file,"./real_data/Wiki-Vote.txt",num_copies,model_size,save_path,c_type)
+    else:
+        get_split(source_file,num_train,num_test,num_copies,model_size,save_path)
     print(" Data split saved.")
 
 #----------AQUÍ SE DA EL PASO 2º----------------------------

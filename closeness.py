@@ -5,7 +5,7 @@ import networkx as nx
 import torch
 from exp_layer_type.conv_close import CNN_Close
 from exp_layer_type.sage_closeness import GSAGE_Close
-from exp_layer_type.gat_closeness import GAT_Close, Transformer_Close
+from exp_layer_type.gat_closeness import GAT_Close
 from utils import *
 import random
 import torch.nn as nn
@@ -46,6 +46,10 @@ elif gtype == "FT":
 
 elif gtype == "FOR_EXP":
     data_path = "./datasets/data_splits/FOR_EXP/closeness/"
+    print("Real data experimentation")
+
+elif gtype == "HYP":
+    data_path = "./datasets/data_splits/HYP/betweenness/"
     print("Real data experimentation")
 
 

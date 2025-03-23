@@ -1,19 +1,19 @@
 import torch.nn as nn
 import torch.nn.functional as F
-from layer import CNN_Layer, GNN_Layer
+from layer import GNN_Layer, Transformer_Layer
 from layer import GNN_Layer_Init
 from layer import MLP
 import torch
 import torch_geometric.nn as geom_nn
 import torch_geometric.data as geom_data
 
-class CNN_PageRank(nn.Module):
+class GAT_PageRank(nn.Module):
     def __init__(self, ninput, nhid, dropout, num_intermediate_layers=6):
-        super(CNN_PageRank, self).__init__()
+        super(GAT_PageRank, self).__init__()
 
         self.gc1 = GNN_Layer_Init(ninput, nhid)
-        self.intermediate_layers = [geom_nn.GCNConv(nhid, nhid) for _ in range(num_intermediate_layers)]
-        self.gc_last = geom_nn.GCNConv(nhid, nhid)
+        self.intermediate_layers = [geom_nn.GATConv(nhid, nhid) for _ in range(num_intermediate_layers)]
+        self.gc_last = geom_nn.GATConv(nhid, nhid)
         self.num_intermediate_layers = num_intermediate_layers
 
         self.dropout = dropout
@@ -38,4 +38,4 @@ class CNN_PageRank(nn.Module):
 
     def get_gnn_type(self):
         """Devuelve el tipo de GNN utilizado en la implementación."""
-        return "CNN"
+        return "GAT"
