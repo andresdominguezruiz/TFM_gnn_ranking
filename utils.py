@@ -1,3 +1,4 @@
+import subprocess
 from networkit import *
 import networkx as nx
 from scipy.linalg import block_diag
@@ -172,6 +173,7 @@ y luego se sigue con el siguiente grafo y su secuencia de nodos.
     zero_list = list()
     list_rand_pos = list()
     list_sparse_diag = list()
+    print(list_graph)
     #-----------------AQUI OCURRE EL PASO 1º-------------------------------------
     for i in range(len(list_graph)):
         print(f"Processing graphs: {i+1}/{len(list_graph)}",end='\r')
@@ -252,6 +254,7 @@ y luego se sigue con el siguiente grafo y su secuencia de nodos.
         
         adj_mat_t = sparse_mx_to_torch_sparse_tensor(adj_mat_t)
         list_adjacency_t.append(adj_mat_t)
+    print(list_adjacency_t)
     print("")          
     return list_adjacency,list_adjacency_t
 
@@ -501,7 +504,9 @@ def graph_to_adj_clustering(list_graph,list_n_sequence,list_node_num,model_size)
         adj_mat_mod = sparse_mx_to_torch_sparse_tensor(adj_mat_mod)
         list_adjacency_mod.append(adj_mat_mod)
 
-    print("")        
+    print("")
+    print("HOLAAAAAAAAAA")
+    print(list_adjacency_mod[0])
     return list_adjacency,list_adjacency_mod
 
 #-----------------OBTENCIÓN DE MATRICES DE ADY. PARA AUTOVALOR Y CLUSTERING---------
@@ -642,3 +647,9 @@ def loss_cal(y_out,true_val,num_nodes,device,model_size):
  
     return loss_rank
 
+
+def call_subprocess(comando):
+    for j in range(1,6):
+        comando_new=f"{comando} --version V{j}"
+        print(f"VERSIÓN A EJECUTAR: V{j}")
+        subprocess.run(comando_new, shell=True) #Asi solo se ejecuta GNN y SAGE 

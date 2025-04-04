@@ -19,12 +19,16 @@ parser.add_argument("--num_intermediate_layer",type=int,default=6)
 parser.add_argument("--gnn",default="GNN")
 parser.add_argument("--model_size",type=int,default=10000)
 parser.add_argument("--version",default="")
+parser.add_argument("--g_hype",type=float,default=None)
+parser.add_argument("--optional_name",type=str,default="")
 args = parser.parse_args()
 gtype = args.g
 num=args.num_intermediate_layer
 gnn_type=args.gnn
 model_size=args.model_size
 v=args.version
+g_hype=args.g_hype
+optional=args.optional_name
 print(gtype)
 #La etiqueta que se le pone al final del comando sirve para determinar el tipo de grafos a utilizar
 
@@ -108,43 +112,45 @@ list_adj_test,list_adj_t_test = graph_to_adj_bet(list_graph_test,list_n_seq_test
 
 
 def train(list_adj_train,list_adj_t_train,list_num_node_train,bc_mat_train):
-    '''
-    Se va recorriendo cada elemento del dataset de entrenamiento de la siguiente forma:
     
-    1º Extrae la matriz de adyacencia normal y transpuesta del elemento y se lo mete al modelo. Esto
-        le devuelve la propia salida, que será un array numpy con las centralidades ESTIMADAS
-    2º Extrae de la lista de matrices de centralidad la matriz de centralidad del elemento. Con
-        esto, se compara con lo estimado y se guarda su error. OJO, PARA CALCULAR EL ERROR,
-        ESCOGEN 20*N_i pares de nodos posibles.
-    
-    3º Con ese error, hace BACKPROPAGATION para actualizar
-        los parámetros según el optimizador. Una vez hecho esto, con el siguiente elemento antes
-        se resetean los gradientes del optimizador.
-    '''
-    model.train()
-    total_count_train = list()
-    loss_train = 0
-    num_samples_train = len(list_adj_train)
-    for i in range(num_samples_train): #num_samples= numero de grafos
-        adj = list_adj_train[i]
-        num_nodes = list_num_node_train[i]
-        adj_t = list_adj_t_train[i]
-        adj = adj.to(device)
-        adj_t = adj_t.to(device)
-
-        optimizer.zero_grad()
-            
-        y_out = model(adj,adj_t)
-        #RECUERDA, y_out=Array, bc_mat_train[:,i]= Array.
-        true_arr = torch.from_numpy(bc_mat_train[:,i]).float()
-        true_val = true_arr.to(device)
+    with torch.autograd.set_detect_anomaly(True):
+        '''
+        Se va recorriendo cada elemento del dataset de entrenamiento de la siguiente forma:
         
-        loss_rank = loss_cal(y_out,true_val,num_nodes,device,model_size)
-        loss_train = loss_train + float(loss_rank) #Esto realmente no sirve
-        torch.autograd.set_detect_anomaly(True)
+        1º Extrae la matriz de adyacencia normal y transpuesta del elemento y se lo mete al modelo. Esto
+            le devuelve la propia salida, que será un array numpy con las centralidades ESTIMADAS
+        2º Extrae de la lista de matrices de centralidad la matriz de centralidad del elemento. Con
+            esto, se compara con lo estimado y se guarda su error. OJO, PARA CALCULAR EL ERROR,
+            ESCOGEN 20*N_i pares de nodos posibles.
+        
+        3º Con ese error, hace BACKPROPAGATION para actualizar
+            los parámetros según el optimizador. Una vez hecho esto, con el siguiente elemento antes
+            se resetean los gradientes del optimizador.
+        '''
+        model.train()
+        total_count_train = list()
+        loss_train = 0
+        num_samples_train = len(list_adj_train)
+        for i in range(num_samples_train): #num_samples= numero de grafos
+            adj = list_adj_train[i]
+            num_nodes = list_num_node_train[i]
+            adj_t = list_adj_t_train[i]
+            adj = adj.to(device)
+            adj_t = adj_t.to(device)
 
-        loss_rank.backward()
-        optimizer.step()
+            optimizer.zero_grad()
+                
+            y_out = model(adj,adj_t)
+            #RECUERDA, y_out=Array, bc_mat_train[:,i]= Array.
+            true_arr = torch.from_numpy(bc_mat_train[:,i]).float()
+            true_val = true_arr.to(device)
+            
+            loss_rank = loss_cal(y_out,true_val,num_nodes,device,model_size)
+            loss_train = loss_train + float(loss_rank) #Esto realmente no sirve
+    #        torch.autograd.set_detect_anomaly(True)
+
+            loss_rank.backward()
+            optimizer.step()
 
 def test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test):
     '''
@@ -220,7 +226,7 @@ for e in range(num_epoch):
     with torch.no_grad():
         kt_mean,std_kt=test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test)
     
-    list_data_per_epoch.append([kt_mean,model.get_num_intermediate_layers(),model.get_gnn_type()])
+    list_data_per_epoch.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
     
 with open(f"results/betweenness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}_per_epoch_{v}_kt.pickle","wb") as fopen2:
     pickle.dump(list_data_per_epoch,fopen2)
@@ -228,9 +234,14 @@ print("")
 print("Results saved")
 #-------------------------------------------------------------------------
 #Código para guardar resultados del KT obtenido EN LA ÚLTIMA ÉPOCA
+if v!="":
+    v=f"_{v}"
+    
+if optional!="":
+    optional=f"_{optional}"
 list_data=list()
-list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
-with open(f"results/betweenness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}_kt.pickle","wb") as fopen2:
+list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type(),g_hype])
+with open(f"results/betweenness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}{optional}{v}_kt.pickle","wb") as fopen2:
         pickle.dump(list_data,fopen2)
 print("")
 print("Results saved")

@@ -7,7 +7,7 @@ import glob
 import random
 import torch
 from datasets_tools import *
-torch.manual_seed(20)
+
 
 #creating training/test dataset split for the model
 
@@ -24,7 +24,8 @@ centrality_type=args.centrality
 
 #--------AQUÍ SE DA EL PASO 1º------------------------------
 adj_size = args.model_size #MAX_NODES , ESTE REALMENTE NO ES USADO.
-graph_types = ["HYP"]
+graph_types = ["SF"]
+#graph_types=["SF"]
 num_train = args.split_train
 num_test = args.split_test
 #Number of permutations for node sequence

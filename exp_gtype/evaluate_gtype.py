@@ -5,11 +5,14 @@ from tabulate import tabulate
 random.seed(10)
 
 cents = ["betweenness", "closeness", "page_rank", "clustering"]
+gtypes=["SF"]
+layer=5
+model_type="GNN"
 
-def read_data(centrality, layers):
+def read_data(centrality, types):
     data = []
-    for i in range(1, layers + 1):
-        with open(centrality + f"/{i}_GNN_kt.pickle", "rb") as f:
+    for i in types:
+        with open(centrality + f"/{layer}_{model_type}_{i}_kt.pickle", "rb") as f:
             arrays = pickle.load(f)
             data.append(arrays[0][0])
     return data
@@ -17,12 +20,13 @@ def read_data(centrality, layers):
 dicc = {}
 
 for cent in cents:
-    data = read_data("results/" + cent, 12)
+    data = read_data("results/" + cent, gtypes)
     dicc[cent] = data
 
 # Crear una tabla con tabulate
-headers = ["Número de capas intermedias"] + cents
-rows = [[i + 1] + [dicc[cent][i] for cent in cents] for i in range(12)]
+headers = ["Tipos de grafo"] + cents
+rows = [[gtypes[i]] + [dicc[cent][i] for cent in cents] for i in range(len(gtypes))]
 
 # Mostrar la tabla
+print(f"#############RESULTADOS CON MODELO {model_type} Y {layer} CAPAS INTERMEDIAS######")
 print(tabulate(rows, headers=headers, tablefmt="grid"))

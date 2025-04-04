@@ -3,5 +3,5 @@ __pycache__/
 datasets/graphs/
 datasets/data_splits/
 datasets/hyperbolic/
-results/
+results/*
 graphs/

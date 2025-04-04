@@ -6,7 +6,7 @@ import glob
 import random
 
 import torch
-torch.manual_seed(20)
+
 from networkit import *
 
 #-----------CREACIÓN DE DATASETS -------------------------
@@ -73,7 +73,6 @@ def nx2nkit(g_nx,is_directed=True):
     
     for e1,e2 in g_nx.edges():
         g_nkit.addEdge(e1,e2)
-        
     return g_nkit
 
 def obtain_dictionary(elements):
@@ -83,7 +82,6 @@ def obtain_dictionary(elements):
     return dictionary
 
 def cal_exact_local_transitivity(g_nkit):
-    print(type(g_nkit))
     exact_local_trans=centrality.LocalClusteringCoefficient(g_nkit).run().ranking()
     exact_dict=obtain_dictionary(exact_local_trans)
     return exact_dict
@@ -96,8 +94,9 @@ def cal_exact_page_rank(g_nkit):
 def cal_exact_bet(g_nkit):
 
     #exact_bet = nx.betweenness_centrality(g_nx,normalized=True)
-
+    
     exact_bet = centrality.Betweenness(g_nkit,normalized=True).run().ranking()
+
     exact_bet_dict = dict()
     for j in exact_bet:
         exact_bet_dict[j[0]] = j[1]
@@ -116,7 +115,7 @@ def cal_exact_close(g_nkit):
     return exact_close_dict
 
 
-def load_txt_graph(file_path, centrality_type):
+def load_txt_graph(file_path, centrality_type,hyp=False):
     G = nx.DiGraph()
 
     with open(file_path, "r") as f:
@@ -135,12 +134,19 @@ def load_txt_graph(file_path, centrality_type):
 
     mapping = {old: new for new, old in enumerate(G.nodes())}
     G_reset = nx.relabel_nodes(G, mapping)
+    if hyp:
+        if nx.number_of_isolates(G_reset)>0:
+                print("f")
+                G_reset.remove_nodes_from(list(nx.isolates(G_reset)))
+                G_reset = nx.convert_node_labels_to_integers(G_reset) 
+    print(G_reset)
     #-----Hay que pasarlo al otro formato de Graph para el cálculo exacto de las centralidades
-    g_nkit=nx2nkit(G_reset)
+    h= hyp==False
+    g_nkit=nx2nkit(G_reset,h)
     g_nkit_for_clus= nx2nkit(G_reset,False)
-    if centrality_type == "bet":
+    if centrality_type == "bet" or centrality_type == "betweenness":
         centrality = cal_exact_bet(g_nkit)
-    elif centrality_type == "close":
+    elif centrality_type == "close" or centrality_type == "closeness":
         centrality = cal_exact_close(g_nkit)
     elif centrality_type == "eigen":
             centrality=cal_exact_page_rank(g_nkit)
@@ -149,7 +155,7 @@ def load_txt_graph(file_path, centrality_type):
         centrality = cal_exact_local_transitivity(g_nkit_for_clus)
     else:
         raise ValueError("centrality_type debe ser 'betweenness' o 'closeness'")
-    
+    print(centrality)
     return G_reset, centrality
 
 
@@ -254,7 +260,7 @@ def get_split_real_data(source_train_file,source_real_file,num_copies,model_size
         pickle.dump([list_graph,list_n_sequence,list_node_num,cent_mat],fopen)
         
 
-def create_graph(graph_type,min_nodes=5000,max_nodes=10000,is_directed=True):
+def create_graph(graph_type,min_nodes=5000,max_nodes=10000,is_directed=True,edit_p=None,edit_alpha=None,edit_s=None):
     '''
     ER y GRP==> tipo DiGraph (2 pares de nodos sólo pueden estar conectados por 1 arista, no más)
     
@@ -279,13 +285,21 @@ def create_graph(graph_type,min_nodes=5000,max_nodes=10000,is_directed=True):
 
     if graph_type == "ER":
         #Erdos-Renyi random graphs
-        p = np.random.randint(2,25)*0.0001
+        p=None
+        if edit_p !=None:
+            p=edit_p
+        else:
+            p = np.random.randint(2,25)*0.0001
         g_nx = nx.generators.random_graphs.fast_gnp_random_graph(num_nodes,p = p,directed = is_directed)
         return g_nx
 
     if graph_type == "SF" or graph_type=="FOR_EXP":
         #Scalefree graphs
-        alpha = np.random.randint(40,60)*0.01
+        alpha=None
+        if edit_alpha!=None:
+            alpha=edit_alpha
+        else:
+            alpha = np.random.randint(40,60)*0.01
         gamma = 0.05
         beta = 1 - alpha - gamma
         g_nx = nx.scale_free_graph(num_nodes,alpha = alpha,beta = beta,gamma = gamma)
@@ -294,7 +308,11 @@ def create_graph(graph_type,min_nodes=5000,max_nodes=10000,is_directed=True):
 
     if graph_type == "GRP":
         #Gaussian-Random Partition Graphs
-        s = np.random.randint(200,1000)
+        s=None
+        if edit_s!=None:
+            s=edit_s
+        else:
+            s = np.random.randint(200,1000)
         v = np.random.randint(200,1000)
         p_in = np.random.randint(2,25)*0.0001
         p_out = np.random.randint(2,25)*0.0001
@@ -303,13 +321,17 @@ def create_graph(graph_type,min_nodes=5000,max_nodes=10000,is_directed=True):
         return g_nx
 
 
-def complete_generation(graph_types,num_of_graphs,min_nodes=5000,max_nodes=10000):
+def complete_generation(graph_types,num_of_graphs,min_nodes=5000,max_nodes=10000,edit_aplha=None,edit_p=None,edit_s=None):
     if graph_types[0]=="HYP":
+        '''
+        Parece ser que los grafos hiperbólicos no son aptos para predecir centralidades,
+        ya que estos devuelven valores cercanos a 0 o directamente 0
+        '''
         hyperbolic_generation("bet")
         hyperbolic_generation("close")
         hyperbolic_generation("clustering")
         hyperbolic_generation("eigen")
-    graph_types.remove("HYP")
+        graph_types.remove("HYP")
     for graph_type in graph_types:
         print("###################")
         print(f"Generating graph type : {graph_type}")
@@ -321,7 +343,7 @@ def complete_generation(graph_types,num_of_graphs,min_nodes=5000,max_nodes=10000
         print("Generating graphs and calculating centralities...")
         for i in range(num_of_graphs):
             print(f"Graph index:{i+1}/{num_of_graphs}",end='\r')
-            g_nx = create_graph(graph_type,min_nodes,max_nodes) #Aqui se da el 1º paso.
+            g_nx = create_graph(graph_type,min_nodes,max_nodes,edit_alpha=edit_aplha,edit_p=edit_p,edit_s=edit_s) #Aqui se da el 1º paso.
             #----Aquí se da el paso 2º -----------
             if nx.number_of_isolates(g_nx)>0:
                 g_nx.remove_nodes_from(list(nx.isolates(g_nx)))
@@ -365,9 +387,9 @@ def complete_generation(graph_types,num_of_graphs,min_nodes=5000,max_nodes=10000
 def hyperbolic_generation(centrality):
     list_data=list()
     for i in range(1,16):
-        gi,dicc=load_txt_graph(f"./hyperbolic/g{i}.edgelist",centrality)
+        #TODO: CAMBIAR FORMA DE LECTURA, YA QUE NO ES CAPAZ DE LEER EL GRAFO
+        gi,dicc=load_txt_graph(f"./hyperbolic/g{i}.txt",centrality,True)
         list_data.append([gi,dicc])
-    
     fname = "./graphs/HYP_data_"+centrality+".pickle"    
         #Aquí ocurre el paso 4º
     with open(fname,"wb") as fopen:

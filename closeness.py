@@ -10,7 +10,7 @@ from utils import *
 import random
 import torch.nn as nn
 from model_close import GNN_Close
-torch.manual_seed(20)
+
 import argparse
 
 #Loading graph data
@@ -19,11 +19,17 @@ parser.add_argument("--g",default="SF")
 parser.add_argument("--num_intermediate_layer",type=int,default=6)
 parser.add_argument("--gnn",default="GNN")
 parser.add_argument("--model_size",type=int,default=10000)
+parser.add_argument("--version",default="")
+parser.add_argument("--g_hype",type=float,default=None)
+parser.add_argument("--optional_name",type=str,default="")
 args = parser.parse_args()
 gtype = args.g
 num=args.num_intermediate_layer
 gnn_type=args.gnn
 model_size=args.model_size
+v=args.version
+g_hype=args.g_hype
+optional=args.optional_name
 print(gtype)
 if gtype == "SF":
     data_path = "./datasets/data_splits/SF/closeness/"
@@ -166,11 +172,14 @@ for e in range(num_epoch):
 #test on 10 test graphs and print average KT Score and its stanard deviation
 #with torch.no_grad():
 #    test(list_adj_test,list_adj_mod_test,list_num_node_test,cc_mat_test)
-
+if v!="":
+    v=f"_{v}"
+if optional!="":
+    optional=f"_{optional}"
 list_data=list()
 print(model.get_num_intermediate_layers())
-list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
-with open(f"results/closeness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}_kt.pickle","wb") as fopen2:
+list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type(),g_hype])
+with open(f"results/closeness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}{optional}{v}_kt.pickle","wb") as fopen2:
         pickle.dump(list_data,fopen2)
 print("")
 print("Results saved")
