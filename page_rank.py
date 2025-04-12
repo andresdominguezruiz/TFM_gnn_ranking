@@ -149,6 +149,7 @@ print("Training")
 print(f"Number of epoches: {num_epoch}")
 kt_mean=None
 std_kt=None
+list_data_per_epoch=list()
 for e in range(num_epoch):
     print(f"Epoch number: {e+1}/{num_epoch}")
     train(list_adj_train,list_adj_mod_train,list_num_node_train,cc_mat_train)
@@ -156,10 +157,12 @@ for e in range(num_epoch):
     #to check test loss while training
     with torch.no_grad():
         kt_mean,std_kt=test(list_adj_test,list_adj_mod_test,list_num_node_test,cc_mat_test)
-#test on 10 test graphs and print average KT Score and its stanard deviation
-#with torch.no_grad():
-#    test(list_adj_test,list_adj_mod_test,list_num_node_test,cc_mat_test)
-
+    list_data_per_epoch.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
+    
+with open(f"results/page_rank/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}_per_epoch_{v}_kt.pickle","wb") as fopen2:
+    pickle.dump(list_data_per_epoch,fopen2)
+print("")
+print("Results saved")
 #------------------------------------------------------------
 #Código para guardar resultados
 if v!="":
