@@ -22,12 +22,12 @@ num_capas=[1,3,5,7,10]
 for num in num_capas:
     # Construir el comando con el valor de i
     print(f"########### CLUSTERING CON {num} CAPAS INTERMEDIAS PARA CNN ################")
-    comando = f"python clustering.py --g SF --num_intermediate_layer {num} --model_size 5000 --gnn CNN "
+    comando = f"python local_clustering.py --g SF --num_intermediate_layer {num} --model_size 5000 --gnn CNN "
     # Ejecutar el comando
     call_subprocess(comando)
 
     print(f"########### CLUSTERING CON {num} CAPAS INTERMEDIAS PARA GAT ################")
-    comando = f"python clustering.py --g SF --num_intermediate_layer {num} --model_size 5000 --gnn GAT "
+    comando = f"python local_clustering.py --g SF --num_intermediate_layer {num} --model_size 5000 --gnn GAT "
     # Ejecutar el comando
     call_subprocess(comando)
     print("-------------------------------------------------------------------------------------")
