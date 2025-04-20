@@ -7,6 +7,8 @@ import torch
 import torch_geometric.nn as geom_nn
 import torch_geometric.data as geom_data
 
+
+
 class CNN_Bet(nn.Module):
     def __init__(self, ninput, nhid, dropout, num_intermediate_layers=4):
         super(CNN_Bet, self).__init__()

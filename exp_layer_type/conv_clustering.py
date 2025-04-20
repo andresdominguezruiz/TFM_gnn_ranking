@@ -7,12 +7,17 @@ import torch
 import torch_geometric.nn as geom_nn
 import torch_geometric.data as geom_data
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+
 class CNN_Clustering(nn.Module):
     def __init__(self, ninput, nhid, dropout, num_intermediate_layers=6):
         super(CNN_Clustering, self).__init__()
 
         self.gc1 = GNN_Layer_Init(ninput, nhid)
-        self.intermediate_layers = [geom_nn.GCNConv(nhid, nhid) for _ in range(num_intermediate_layers)]
+        self.intermediate_layers = nn.ModuleList(
+            [geom_nn.GCNConv(nhid, nhid) for _ in range(num_intermediate_layers)]
+        )
         self.gc_last = geom_nn.GCNConv(nhid, nhid)
         self.num_intermediate_layers = num_intermediate_layers
 
@@ -20,18 +25,29 @@ class CNN_Clustering(nn.Module):
         self.score_layer = MLP(nhid, self.dropout)
 
     def forward(self, adj1, adj2):
+        # Asegura que adj1 y adj2 estén en el mismo dispositivo que el modelo
+        device = next(self.parameters()).device
+        adj1 = adj1.to(device)
+        adj2 = adj2.to(device)
+
         x = F.normalize(F.relu(self.gc1(adj1)), p=2, dim=1)
+
         for layer in self.intermediate_layers:
             x = F.normalize(F.relu(layer(x, adj2)), p=2, dim=1)
+
         x_last = F.relu(self.gc_last(x, adj2))
 
-        scores = [self.score_layer(F.normalize(F.relu(layer(x, adj2)), p=2, dim=1), self.dropout) for layer in self.intermediate_layers]
+        scores = [
+            self.score_layer(F.normalize(F.relu(layer(x, adj2)), p=2, dim=1), self.dropout)
+            for layer in self.intermediate_layers
+        ]
+
         scores.insert(0, self.score_layer(x, self.dropout))
         scores.append(self.score_layer(x_last, self.dropout))
 
         score_top = sum(scores)
         return score_top
-    
+
     def get_num_intermediate_layers(self):
         """Devuelve la cantidad de capas intermedias utilizadas en la red GNN."""
         return self.num_intermediate_layers
@@ -39,3 +55,4 @@ class CNN_Clustering(nn.Module):
     def get_gnn_type(self):
         """Devuelve el tipo de GNN utilizado en la implementación."""
         return "CNN"
+
