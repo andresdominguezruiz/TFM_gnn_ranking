@@ -15,6 +15,12 @@ class CNN_Clustering(nn.Module):
         super(CNN_Clustering, self).__init__()
 
         self.gc1 = GNN_Layer_Init(ninput, nhid)
+        '''
+        OJO, es MUY importante que cuando hagas las capas de esta forma, que los pongas dentro de nn.ModuleList
+        o que los pongas por separado.
+
+        Cuando almacenas las listas en algo que no es de torch, deja los pesos y sesgos en CPU.
+        '''
         self.intermediate_layers = nn.ModuleList(
             [geom_nn.GCNConv(nhid, nhid) for _ in range(num_intermediate_layers)]
         )

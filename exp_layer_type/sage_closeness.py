@@ -8,13 +8,16 @@ import torch_geometric
 import torch_geometric.nn as geom_nn
 import torch_geometric.data as geom_data
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class GSAGE_Close(nn.Module):
     def __init__(self, ninput, nhid, dropout, num_intermediate_layers=6):
         super(GSAGE_Close, self).__init__()
 
         self.gc1 = GNN_Layer_Init(ninput, nhid)
-        self.intermediate_layers = [geom_nn.SAGEConv(nhid, nhid) for _ in range(num_intermediate_layers)]
+        self.intermediate_layers = nn.ModuleList(
+            [geom_nn.SAGEConv(nhid, nhid) for _ in range(num_intermediate_layers)]
+        )
         self.gc_last = geom_nn.SAGEConv(nhid, nhid)
         self.num_intermediate_layers = num_intermediate_layers
 
@@ -22,6 +25,10 @@ class GSAGE_Close(nn.Module):
         self.score_layer = MLP(nhid, self.dropout)
 
     def forward(self, adj1, adj2):
+        device = next(self.parameters()).device
+        adj1 = adj1.to(device)
+        adj2 = adj2.to(device)
+        
         x2_1 = F.normalize(F.relu(self.gc1(adj1)), p=2, dim=1)
         x = x2_1
         for layer in self.intermediate_layers:
