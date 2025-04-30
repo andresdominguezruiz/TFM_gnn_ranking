@@ -14,6 +14,7 @@ from datasets_tools import *
 parser = argparse.ArgumentParser(description="Generar grafos y calcular centralidades.")
 parser.add_argument("--num_graphs", type=int, required=True, help="Número de grafos a generar")
 parser.add_argument("--centrality", type=str, required=False, help="Tipo de centralidad",default="all")
+parser.add_argument("--g_type", type=str, required=False, help="Tipo de grafos a generar",default="all")
 parser.add_argument("--min_nodes", type=int, required=False, help="Número mínimo de nodos",default=5000)
 parser.add_argument("--max_nodes", type=int, required=False, help="Número máximo de nodos",default=10000)
 parser.add_argument("--alpha", type=float, required=False, help="Alpha a la hora de crear grafos SF",default=None)
@@ -31,16 +32,19 @@ alpha=args.alpha
 p=args.p
 s=args.s
 
+g_type=args.g_type
+g_types=[]
+if g_type == "all":
+    g_types=["SF","ER","GRP"]
+else:
+    g_types.append(g_type)
 
-#EL SF DEVUELVE UN MULTIDRIGRAPH, Y ESE DA PROBLEMAS CON EL CLUSTERING
-graph_types = ["SF"]
-#graph_types = ["SF"]
 #centrality_types = ["bet","close","eigen","clustering"]
 
 if centrality_type == "all":
-    complete_generation(graph_types,num_of_graphs,mini,maxi,alpha,p,s)
+    complete_generation(g_types,num_of_graphs,mini,maxi,alpha,p,s)
 else:
-    generation_per_centrality(graph_types,num_of_graphs,centrality_type,mini,maxi)
+    generation_per_centrality(g_types,num_of_graphs,centrality_type,mini,maxi,alpha,p,s)
 
 print("End.")
 

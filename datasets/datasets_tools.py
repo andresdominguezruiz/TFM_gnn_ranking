@@ -397,16 +397,16 @@ def hyperbolic_generation(centrality):
     print("")
     print("Graphs saved")
 
-def generation_per_centrality(graph_types,num_of_graphs,centrality,min_nodes=5000,max_nodes=10000):
+def generation_per_centrality(graph_types,num_of_graphs,centrality,min_nodes=5000,max_nodes=10000,edit_alpha=None,edit_p=None,edit_s=None):
     for graph_type in graph_types:
         print(f"########## CENTRALITY TYPE: {centrality} #########")
-        print(f"Generating graph type : {graph_type}")
+        print(f"Generating graph type : {graph_type} with alpha={edit_alpha},p={edit_p},s={edit_s}")
         print(f"Number of graphs to be generated:{num_of_graphs}")
         list_data=list()
         print("Generating graphs and calculating centralities...")
         for i in range(num_of_graphs):
             print(f"Graph index:{i+1}/{num_of_graphs}",end='\r')
-            g_nx = create_graph(graph_type,min_nodes,max_nodes) #Aqui se da el 1º paso.
+            g_nx = create_graph(graph_type,min_nodes,max_nodes,edit_alpha,edit_p,edit_s) #Aqui se da el 1º paso.
             #----Aquí se da el paso 2º -----------
             if nx.number_of_isolates(g_nx)>0:
                 g_nx.remove_nodes_from(list(nx.isolates(g_nx)))

@@ -15,6 +15,7 @@ parser = argparse.ArgumentParser(description="Generar dataset.")
 parser.add_argument("--split_train", type=int, required=True, help="Número de grafos de entrenamiento a escoger")
 parser.add_argument("--split_test", type=int, required=True, help="Número de grafos de test a escoger")
 parser.add_argument("--centrality", type=str, required=False, help="Tipo de centralidad",default="all")
+parser.add_argument("--g_type", type=str, required=False, help="Tipo de grafos a generar",default="all")
 parser.add_argument("--model_size", type=int, required=True, help="Tamaño del modelo")
 parser.add_argument("--num_copies", type=int, required=True, help="Número de permutaciones")
 
@@ -24,7 +25,12 @@ centrality_type=args.centrality
 
 #--------AQUÍ SE DA EL PASO 1º------------------------------
 adj_size = args.model_size #MAX_NODES , ESTE REALMENTE NO ES USADO.
-graph_types = ["SF"]
+g_type=args.g_type
+g_types=[]
+if g_type == "all":
+    g_types=["SF","ER","GRP"]
+else:
+    g_types.append(g_type)
 #graph_types=["SF"]
 num_train = args.split_train
 num_test = args.split_test
@@ -55,13 +61,13 @@ def prepare_dataset_creation(g_type,centrality_type,num_train,num_test,num_copie
 
 #----------AQUÍ SE DA EL PASO 2º----------------------------
 if centrality_type!="all":
-    for g_type in graph_types:
-        prepare_dataset_creation(g_type,centrality_type,num_train,num_test,num_copies,adj_size)
+    for e in g_types:
+        prepare_dataset_creation(e,centrality_type,num_train,num_test,num_copies,adj_size)
 
 else:
     for cen in all_cen:
-        for g_type in graph_types:
-            prepare_dataset_creation(g_type,cen,num_train,num_test,num_copies,adj_size)
+        for e in g_types:
+            prepare_dataset_creation(e,cen,num_train,num_test,num_copies,adj_size)
 #-------------------------------------------------------------------
 
 

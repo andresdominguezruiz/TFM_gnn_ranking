@@ -218,6 +218,8 @@ print(f"Total Number of epoches: {num_epoch}")
 kt_mean=None
 std_kt=None
 list_data_per_epoch=list()
+if optional!="":
+    optional=f"_{optional}"
 for e in range(num_epoch):
     print(f"Epoch number: {e+1}/{num_epoch}")
     train(list_adj_train,list_adj_t_train,list_num_node_train,bc_mat_train)
@@ -226,9 +228,9 @@ for e in range(num_epoch):
     with torch.no_grad():
         kt_mean,std_kt=test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test)
     
-    list_data_per_epoch.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
+    list_data_per_epoch.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type(),g_hype])
     
-with open(f"results/betweenness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}_per_epoch_{v}_kt.pickle","wb") as fopen2:
+with open(f"results/betweenness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}_per_epoch{optional}_{v}_kt.pickle","wb") as fopen2:
     pickle.dump(list_data_per_epoch,fopen2)
 print("")
 print("Results saved")
@@ -237,8 +239,7 @@ print("Results saved")
 if v!="":
     v=f"_{v}"
     
-if optional!="":
-    optional=f"_{optional}"
+
 list_data=list()
 list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type(),g_hype])
 with open(f"results/betweenness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}{optional}{v}_kt.pickle","wb") as fopen2:
