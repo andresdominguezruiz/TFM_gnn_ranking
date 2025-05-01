@@ -13,8 +13,8 @@ from utils import call_subprocess
 
 #SOLO SE HARÁN PRUEBAS CON SF
 #RESETEO DE GRAFOS#--------------------------------------
-subprocess.run(f"python central_generate_graph.py --num_graphs 15 --min_nodes 3000 --max_nodes 5000", shell=True,cwd="datasets")
-subprocess.run(f"python central_create_dataset.py --split_train 5 --split_test 10 --model_size 5000 --num_copies 100" ,shell=True,cwd="datasets")
+subprocess.run(f"python central_generate_graph.py --num_graphs 15 --min_nodes 3000 --max_nodes 5000 --g_type SF", shell=True,cwd="datasets")
+subprocess.run(f"python central_create_dataset.py --split_train 5 --split_test 10 --model_size 5000 --num_copies 100 --g_type SF" ,shell=True,cwd="datasets")
 #Había que solo incluir SF, el resto TARDA MUCHO
 #--------------------------------------------------------
 num_capas=[10]
