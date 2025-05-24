@@ -17,14 +17,14 @@ subprocess.run(f"python central_generate_graph.py --num_graphs 15 --min_nodes 30
 subprocess.run(f"python central_create_dataset.py --split_train 5 --split_test 10 --model_size 5000 --num_copies 100 --g_type SF" ,shell=True,cwd="datasets")
 #Había que solo incluir SF, el resto TARDA MUCHO
 #--------------------------------------------------------
-num_capas=[1,3,5,7,10]
+num_capas=[2]
 #IDEA: Estudiar nº de capas óptima en GNN con grafos de entre 100000-50000 nodos(valores del artículo)
 for num in num_capas:
     # Construir el comando con el valor de i
     print(f"########### PAGE RANK CON {num} CAPAS INTERMEDIAS PARA CNN ################")
     comando = f"python page_rank.py --g SF --num_intermediate_layer {num} --model_size 5000 --gnn CNN "
     # Ejecutar el comando
-    call_subprocess(comando)
+    #call_subprocess(comando)
 
     print(f"########### PAGE RANK CON {num} CAPAS INTERMEDIAS PARA GAT ################")
     comando = f"python page_rank.py --g SF --num_intermediate_layer {num} --model_size 5000 --gnn GAT "

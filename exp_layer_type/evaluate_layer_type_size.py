@@ -12,7 +12,7 @@ versions=["V1","V2","V3","V4","V5"]
 
 
 MODEL="CNN"
-TASK="clustering"
+TASK="page_rank"
 
 def read_data(layer):
     data_mean_0 = []
@@ -41,8 +41,8 @@ dicc_std = dict()
 
 for p in layers:
     medias, desvios = read_data(p)
-    dicc_medias[f"{TASK}-{MODEL}-layers={p}"] = medias
-    dicc_std[f"{TASK}-{MODEL}-layers={p}"] = desvios
+    dicc_medias[f"{TASK}-GCN-layers={p}"] = medias
+    dicc_std[f"{TASK}-GCN-layers={p}"] = desvios
 
 fig = go.Figure()
 
@@ -60,7 +60,7 @@ for clave in dicc_medias.keys():
     ))
 
 fig.update_layout(
-    title=f"{TASK}-{MODEL}-Gráfica para la evolución de los modelos según cantidad de capas",
+    title=f"{TASK}-GCN-Gráfica para la evolución de los modelos según cantidad de capas",
     xaxis_title="Número de época",
     yaxis_title="Media de KT obtenido",
     xaxis=dict(tickmode='linear', dtick=1)
