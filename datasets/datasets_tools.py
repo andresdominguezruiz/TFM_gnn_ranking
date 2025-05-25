@@ -299,9 +299,11 @@ def create_graph(graph_type,min_nodes=5000,max_nodes=10000,is_directed=True,edit
         if edit_alpha!=None:
             alpha=edit_alpha
         else:
-            alpha = np.random.randint(40,60)*0.01
-        gamma = 0.05
+            alpha = np.random.randint(30,50)*0.01
+        gamma = alpha
         beta = 1 - alpha - gamma
+        if beta<0:
+            beta=0.01
         g_nx = nx.scale_free_graph(num_nodes,alpha = alpha,beta = beta,gamma = gamma)
         return g_nx
 
