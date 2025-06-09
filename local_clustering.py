@@ -4,12 +4,13 @@ import pickle
 import networkx as nx
 import torch
 from exp_layer_type.conv_clustering import CNN_Clustering
-from exp_layer_type.transformer_clustering import Transformer_Clustering
+from exp_layer_type.sage_clustering import GSAGE_Clustering
+from exp_layer_type.gat_clustering import GAT_Clustering
 from utils import *
 import random
 import torch.nn as nn
 from model_clustering import GNN_Clustering
-torch.manual_seed(20)
+
 import argparse
 
 #Loading graph data
@@ -18,11 +19,17 @@ parser.add_argument("--g",default="SF")
 parser.add_argument("--num_intermediate_layer",type=int,default=6)
 parser.add_argument("--gnn",default="GNN")
 parser.add_argument("--model_size",type=int,default=10000)
+parser.add_argument("--version",default="")
+parser.add_argument("--g_hype",type=float,default=None)
+parser.add_argument("--optional_name",type=str,default="")
 args = parser.parse_args()
 gtype = args.g
 num=args.num_intermediate_layer
 gnn_type=args.gnn
 model_size=args.model_size
+v=args.version
+g_hype=args.g_hype
+optional=args.optional_name
 print(gtype)
 if gtype == "SF":
     data_path = "./datasets/data_splits/SF/clustering/"
@@ -34,6 +41,22 @@ elif gtype == "ER":
 elif gtype == "GRP":
     data_path = "./datasets/data_splits/GRP/clustering/"
     print("Gaussian Random Partition graphs selected.")
+
+elif gtype == "TU":
+    data_path = "./datasets/data_splits/TU/clustering/"
+    print("Turan graphs selected.")
+
+elif gtype == "FT":
+    data_path = "./datasets/data_splits/FT/clustering/"
+    print("Full Rary Tree graphs selected.")
+
+elif gtype == "FOR_EXP":
+    data_path = "./datasets/data_splits/FOR_EXP/clustering/"
+    print("Real data experimentation")
+
+elif gtype == "HYP":
+    data_path = "./datasets/data_splits/HYP/betweenness/"
+    print("Real data experimentation")
 
 
 
@@ -113,9 +136,11 @@ if gnn_type=="GNN":
     model = GNN_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
 elif gnn_type=="CNN":
     model = CNN_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
-elif gnn_type=="Transformer":
-    model = Transformer_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
-
+elif gnn_type=="GAT":
+    model = GAT_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+elif gnn_type=="SAGE":
+    model = GSAGE_Clustering(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+    
 model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(),lr=0.0005)
@@ -125,6 +150,7 @@ print("Training")
 print(f"Number of epoches: {num_epoch}")
 kt_mean=None
 std_kt=None
+list_data_per_epoch=list()
 for e in range(num_epoch):
     print(f"Epoch number: {e+1}/{num_epoch}")
     train(list_adj_train,list_adj_mod_train,list_num_node_train,cc_mat_train)
@@ -132,14 +158,23 @@ for e in range(num_epoch):
     #to check test loss while training
     with torch.no_grad():
         kt_mean,std_kt=test(list_adj_test,list_adj_mod_test,list_num_node_test,cc_mat_test)
-#test on 10 test graphs and print average KT Score and its stanard deviation
-#with torch.no_grad():
-#    test(list_adj_test,list_adj_mod_test,list_num_node_test,cc_mat_test)
-#----------------------------------------------
+
+    list_data_per_epoch.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
+
+with open(f"results/clustering/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}_per_epoch_{v}_kt.pickle","wb") as fopen2:
+    pickle.dump(list_data_per_epoch,fopen2)
+print("")
+print("Results saved")
+
+
 #Código para guardar resultados
+if v!="":
+    v=f"_{v}"
+if optional!="":
+    optional=f"_{optional}"
 list_data=list()
-list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
-with open(f"results/clustering/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_kt.pickle","wb") as fopen2:
+list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type(),g_hype])
+with open(f"results/clustering/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}{optional}{v}_kt.pickle","wb") as fopen2:
         pickle.dump(list_data,fopen2)
 print("")
 print("Results saved")

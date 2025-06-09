@@ -1,15 +1,18 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from layer import CNN_Layer, GNN_Layer_Init, MLP
-import torch 
+import torch
+import torch_geometric
+import torch_geometric.nn as geom_nn
+import torch_geometric.data as geom_data
 
 class CNN_Close(nn.Module):
     def __init__(self, ninput, nhid, dropout, num_intermediate_layers=6):
         super(CNN_Close, self).__init__()
 
         self.gc1 = GNN_Layer_Init(ninput, nhid)
-        self.intermediate_layers = [CNN_Layer(nhid, nhid) for _ in range(num_intermediate_layers)]
-        self.gc_last = CNN_Layer(nhid, nhid)
+        self.intermediate_layers = [geom_nn.GCNConv(nhid, nhid) for _ in range(num_intermediate_layers)]
+        self.gc_last = geom_nn.GCNConv(nhid, nhid)
         self.num_intermediate_layers = num_intermediate_layers
 
         self.dropout = dropout

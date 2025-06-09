@@ -43,7 +43,7 @@ def create_graph(graph_type):
 
 
 num_of_graphs = 50
-graph_types = ["ER","SF","GRP"]
+graph_types = ["SF"]
 #-------GENERACIÓN DE DATOS SINTÉTICOS ---------------
 '''
 Para cada tipo de dato sintético, crea 50 grafos de la siguiente forma:

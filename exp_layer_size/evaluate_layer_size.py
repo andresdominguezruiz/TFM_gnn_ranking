@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 
 
 #TODO: ejecutar denuevo el de clustering porque se guardaba mal
-cents=["betweenness","closeness","page_rank"]
+cents=["betweenness","closeness","page_rank","clustering"]
 
 def read_data(centrality,layers):
     data=[]
@@ -24,7 +24,7 @@ def read_data(centrality,layers):
 dicc=dict()
 
 for cent in cents:
-    data=read_data("results/"+cent,6)
+    data=read_data("results/"+cent,12)
     dicc.update({cent:data})
 
 fig = go.Figure()
@@ -48,5 +48,3 @@ fig.update_layout(
 # Mostrar gráfica
 fig.show()
 
-# Mostrar gráfica
-fig.show()

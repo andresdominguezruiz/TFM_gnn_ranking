@@ -4,12 +4,12 @@ import pickle
 import networkx as nx
 import torch
 from exp_layer_type.conv_betweenness import CNN_Bet
-from exp_layer_type.transformer_betweenness import Transformer_Bet
+from exp_layer_type.gat_betweenness import GAT_Bet
+from exp_layer_type.sage_betweenness import GSAGE_Bet
 from utils import *
 import random
 import torch.nn as nn
 from model_bet import GNN_Bet
-torch.manual_seed(20)
 import argparse
 
 #Loading graph data
@@ -18,11 +18,17 @@ parser.add_argument("--g",default="SF")
 parser.add_argument("--num_intermediate_layer",type=int,default=6)
 parser.add_argument("--gnn",default="GNN")
 parser.add_argument("--model_size",type=int,default=10000)
+parser.add_argument("--version",default="")
+parser.add_argument("--g_hype",type=float,default=None)
+parser.add_argument("--optional_name",type=str,default="")
 args = parser.parse_args()
 gtype = args.g
 num=args.num_intermediate_layer
 gnn_type=args.gnn
 model_size=args.model_size
+v=args.version
+g_hype=args.g_hype
+optional=args.optional_name
 print(gtype)
 #La etiqueta que se le pone al final del comando sirve para determinar el tipo de grafos a utilizar
 
@@ -59,8 +65,20 @@ elif gtype == "GRP":
     data_path = "./datasets/data_splits/GRP/betweenness/"
     print("Gaussian Random Partition graphs selected.")
 
+elif gtype == "TU":
+    data_path = "./datasets/data_splits/TU/betweenness/"
+    print("Turan graphs selected.")
+
+elif gtype == "FT":
+    data_path = "./datasets/data_splits/FT/betweenness/"
+    print("Full Rary Tree graphs selected.")
+
 elif gtype == "FOR_EXP":
     data_path = "./datasets/data_splits/FOR_EXP/betweenness/"
+    print("Real data experimentation")
+    
+elif gtype == "HYP":
+    data_path = "./datasets/data_splits/HYP/betweenness/"
     print("Real data experimentation")
 
 # Lo que se hace es preparar los paquetes a utilizar, fijar una semilla PARA LAS OPERACIONES 
@@ -94,41 +112,45 @@ list_adj_test,list_adj_t_test = graph_to_adj_bet(list_graph_test,list_n_seq_test
 
 
 def train(list_adj_train,list_adj_t_train,list_num_node_train,bc_mat_train):
-    '''
-    Se va recorriendo cada elemento del dataset de entrenamiento de la siguiente forma:
     
-    1º Extrae la matriz de adyacencia normal y transpuesta del elemento y se lo mete al modelo. Esto
-        le devuelve la propia salida, que será un array numpy con las centralidades ESTIMADAS
-    2º Extrae de la lista de matrices de centralidad la matriz de centralidad del elemento. Con
-        esto, se compara con lo estimado y se guarda su error. OJO, PARA CALCULAR EL ERROR,
-        ESCOGEN 20*N_i pares de nodos posibles.
-    
-    3º Con ese error, hace BACKPROPAGATION para actualizar
-        los parámetros según el optimizador. Una vez hecho esto, con el siguiente elemento antes
-        se resetean los gradientes del optimizador.
-    '''
-    model.train()
-    total_count_train = list()
-    loss_train = 0
-    num_samples_train = len(list_adj_train)
-    for i in range(num_samples_train): #num_samples= numero de grafos
-        adj = list_adj_train[i]
-        num_nodes = list_num_node_train[i]
-        adj_t = list_adj_t_train[i]
-        adj = adj.to(device)
-        adj_t = adj_t.to(device)
-
-        optimizer.zero_grad()
-            
-        y_out = model(adj,adj_t)
-        #RECUERDA, y_out=Array, bc_mat_train[:,i]= Array.
-        true_arr = torch.from_numpy(bc_mat_train[:,i]).float()
-        true_val = true_arr.to(device)
+    with torch.autograd.set_detect_anomaly(True):
+        '''
+        Se va recorriendo cada elemento del dataset de entrenamiento de la siguiente forma:
         
-        loss_rank = loss_cal(y_out,true_val,num_nodes,device,model_size)
-        loss_train = loss_train + float(loss_rank) #Esto realmente no sirve
-        loss_rank.backward()
-        optimizer.step()
+        1º Extrae la matriz de adyacencia normal y transpuesta del elemento y se lo mete al modelo. Esto
+            le devuelve la propia salida, que será un array numpy con las centralidades ESTIMADAS
+        2º Extrae de la lista de matrices de centralidad la matriz de centralidad del elemento. Con
+            esto, se compara con lo estimado y se guarda su error. OJO, PARA CALCULAR EL ERROR,
+            ESCOGEN 20*N_i pares de nodos posibles.
+        
+        3º Con ese error, hace BACKPROPAGATION para actualizar
+            los parámetros según el optimizador. Una vez hecho esto, con el siguiente elemento antes
+            se resetean los gradientes del optimizador.
+        '''
+        model.train()
+        total_count_train = list()
+        loss_train = 0
+        num_samples_train = len(list_adj_train)
+        for i in range(num_samples_train): #num_samples= numero de grafos
+            adj = list_adj_train[i]
+            num_nodes = list_num_node_train[i]
+            adj_t = list_adj_t_train[i]
+            adj = adj.to(device)
+            adj_t = adj_t.to(device)
+
+            optimizer.zero_grad()
+                
+            y_out = model(adj,adj_t)
+            #RECUERDA, y_out=Array, bc_mat_train[:,i]= Array.
+            true_arr = torch.from_numpy(bc_mat_train[:,i]).float()
+            true_val = true_arr.to(device)
+            
+            loss_rank = loss_cal(y_out,true_val,num_nodes,device,model_size)
+            loss_train = loss_train + float(loss_rank) #Esto realmente no sirve
+    #        torch.autograd.set_detect_anomaly(True)
+
+            loss_rank.backward()
+            optimizer.step()
 
 def test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test):
     '''
@@ -169,7 +191,7 @@ def test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test):
 
 #-----------------AQUI OCURRE EL PASO 3º------------------------------------
 #Model parameters
-hidden = 12
+hidden = 20
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model=None
@@ -177,8 +199,11 @@ if gnn_type=="GNN":
     model = GNN_Bet(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
 elif gnn_type=="CNN":
     model = CNN_Bet(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
-elif gnn_type=="Transformer":
-    model = Transformer_Bet(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+elif gnn_type=="GAT":
+    model = GAT_Bet(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+elif gnn_type=="SAGE":
+    model = GSAGE_Bet(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+
 
 model.to(device)
 
@@ -192,6 +217,9 @@ print("Training")
 print(f"Total Number of epoches: {num_epoch}")
 kt_mean=None
 std_kt=None
+list_data_per_epoch=list()
+if optional!="":
+    optional=f"_{optional}"
 for e in range(num_epoch):
     print(f"Epoch number: {e+1}/{num_epoch}")
     train(list_adj_train,list_adj_t_train,list_num_node_train,bc_mat_train)
@@ -199,15 +227,22 @@ for e in range(num_epoch):
     #to check test loss while training
     with torch.no_grad():
         kt_mean,std_kt=test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test)
-#test on 10 test graphs and print average KT Score and its stanard deviation
-#with torch.no_grad():
-#    test(list_adj_test,list_adj_t_test,list_num_node_test,bc_mat_test)
-
+    
+    list_data_per_epoch.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type(),g_hype])
+    
+with open(f"results/betweenness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}_per_epoch{optional}_{v}_kt.pickle","wb") as fopen2:
+    pickle.dump(list_data_per_epoch,fopen2)
+print("")
+print("Results saved")
 #-------------------------------------------------------------------------
 #Código para guardar resultados del KT obtenido EN LA ÚLTIMA ÉPOCA
+if v!="":
+    v=f"_{v}"
+    
+
 list_data=list()
-list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
-with open(f"results/betweenness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_kt.pickle","wb") as fopen2:
+list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type(),g_hype])
+with open(f"results/betweenness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}{optional}{v}_kt.pickle","wb") as fopen2:
         pickle.dump(list_data,fopen2)
 print("")
 print("Results saved")

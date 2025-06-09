@@ -4,12 +4,13 @@ import pickle
 import networkx as nx
 import torch
 from exp_layer_type.conv_close import CNN_Close
-from exp_layer_type.transformer_close import Transformer_Close
+from exp_layer_type.sage_closeness import GSAGE_Close
+from exp_layer_type.gat_closeness import GAT_Close
 from utils import *
 import random
 import torch.nn as nn
 from model_close import GNN_Close
-torch.manual_seed(20)
+
 import argparse
 
 #Loading graph data
@@ -18,11 +19,17 @@ parser.add_argument("--g",default="SF")
 parser.add_argument("--num_intermediate_layer",type=int,default=6)
 parser.add_argument("--gnn",default="GNN")
 parser.add_argument("--model_size",type=int,default=10000)
+parser.add_argument("--version",default="")
+parser.add_argument("--g_hype",type=float,default=None)
+parser.add_argument("--optional_name",type=str,default="")
 args = parser.parse_args()
 gtype = args.g
 num=args.num_intermediate_layer
 gnn_type=args.gnn
 model_size=args.model_size
+v=args.version
+g_hype=args.g_hype
+optional=args.optional_name
 print(gtype)
 if gtype == "SF":
     data_path = "./datasets/data_splits/SF/closeness/"
@@ -34,6 +41,22 @@ elif gtype == "ER":
 elif gtype == "GRP":
     data_path = "./datasets/data_splits/GRP/closeness/"
     print("Gaussian Random Partition graphs selected.")
+
+elif gtype == "TU":
+    data_path = "./datasets/data_splits/TU/closeness/"
+    print("Turan graphs selected.")
+
+elif gtype == "FT":
+    data_path = "./datasets/data_splits/FT/closeness/"
+    print("Full Rary Tree graphs selected.")
+
+elif gtype == "FOR_EXP":
+    data_path = "./datasets/data_splits/FOR_EXP/closeness/"
+    print("Real data experimentation")
+
+elif gtype == "HYP":
+    data_path = "./datasets/data_splits/HYP/betweenness/"
+    print("Real data experimentation")
 
 
 
@@ -52,7 +75,17 @@ print(f"Graphs to adjacency conversion.")
 
 list_adj_train,list_adj_mod_train = graph_to_adj_close(list_graph_train,list_n_seq_train,list_num_node_train,model_size)
 list_adj_test,list_adj_mod_test = graph_to_adj_close(list_graph_test,list_n_seq_test,list_num_node_test,model_size)
-
+'''
+DA ESTE ERROR AL PASARLO A graph_to_one_hot
+Traceback (most recent call last):
+  File "/home/anddomrui/Escritorio/tfm/TFM_gnn_ranking/closeness.py", line 150, in <module>
+    train(list_adj_train,list_adj_mod_train,list_num_node_train,cc_mat_train)
+  File "/home/anddomrui/Escritorio/tfm/TFM_gnn_ranking/closeness.py", line 86, in train
+    adj = adj.to(device)
+  File "/home/anddomrui/Escritorio/tfm/TFM_gnn_ranking/env/lib/python3.10/site-packages/scipy/sparse/base.py", line 687, in __getattr__
+    raise AttributeError(attr + " not found")
+AttributeError: to not found
+'''
 
 
 def train(list_adj_train,list_adj_mod_train,list_num_node_train,cc_mat_train):
@@ -114,8 +147,11 @@ if gnn_type=="GNN":
     model = GNN_Close(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
 elif gnn_type=="CNN":
     model = CNN_Close(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
-elif gnn_type=="Transformer":
-    model = Transformer_Close(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+elif gnn_type=="GAT":
+    model = GAT_Close(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
+
+elif gnn_type=="SAGE":
+    model=GSAGE_Close(ninput=model_size,nhid=hidden,dropout=0.6,num_intermediate_layers=num)
 
 model.to(device)
 
@@ -136,11 +172,14 @@ for e in range(num_epoch):
 #test on 10 test graphs and print average KT Score and its stanard deviation
 #with torch.no_grad():
 #    test(list_adj_test,list_adj_mod_test,list_num_node_test,cc_mat_test)
-
+if v!="":
+    v=f"_{v}"
+if optional!="":
+    optional=f"_{optional}"
 list_data=list()
 print(model.get_num_intermediate_layers())
-list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type()])
-with open(f"results/closeness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_kt.pickle","wb") as fopen2:
+list_data.append([kt_mean,std_kt,model.get_num_intermediate_layers(),model.get_gnn_type(),g_hype])
+with open(f"results/closeness/{model.get_num_intermediate_layers()}_{model.get_gnn_type()}_{gtype}{optional}{v}_kt.pickle","wb") as fopen2:
         pickle.dump(list_data,fopen2)
 print("")
 print("Results saved")
